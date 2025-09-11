@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../themes/app_colour.dart';
+import '../common/router.dart';
 
 class CustomBottomNavigation extends StatelessWidget {
   final int currentIndex;
-  final Function(int) onTap;
+  final Function(int)? onTap;
 
   const CustomBottomNavigation({
     super.key,
     required this.currentIndex,
-    required this.onTap,
+    this.onTap,
   });
 
   @override
@@ -58,14 +60,14 @@ class CustomBottomNavigation extends StatelessWidget {
               _buildNavItem(
                 context: context,
                 icon: Icons.search,
-                label: 'Search',
+                label: 'Home',
                 index: 0,
                 isSelected: currentIndex == 0,
               ),
               _buildNavItem(
                 context: context,
                 icon: Icons.apartment_outlined,
-                label: 'Properties',
+                label: 'Rent',
                 index: 1,
                 isSelected: currentIndex == 1,
               ),
@@ -110,7 +112,7 @@ class CustomBottomNavigation extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => onTap(index),
+          onTap: () => _handleNavigation(context, index),
           borderRadius: BorderRadius.circular(12),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
@@ -186,6 +188,33 @@ class CustomBottomNavigation extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _handleNavigation(BuildContext context, int index) {
+    // If there's a custom onTap handler, use it (for backward compatibility)
+    if (onTap != null) {
+      onTap!(index);
+      return;
+    }
+    
+    // Otherwise, handle navigation with GoRouter
+    switch (index) {
+      case 0: // Home/Search
+        context.go(RoutePaths.home);
+        break;
+      case 1: // Rent
+        context.go(RoutePaths.rent);
+        break;
+      case 2: // Favorites
+        // TODO: Add favorites route when screen is created
+        break;
+      case 3: // Near Me
+        // TODO: Add nearby route when screen is created
+        break;
+      case 4: // Profile
+        context.go(RoutePaths.profile);
+        break;
+    }
   }
 
   IconData _getFilledIcon(IconData outlineIcon) {

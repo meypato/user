@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../themes/app_colour.dart';
 import '../../providers/profile_provider.dart';
 import '../../common/router.dart';
+import '../../widgets/bottom_navigation.dart';
+import '../../widgets/app_drawer.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -31,47 +33,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context, profileProvider, child) {
         return Scaffold(
           backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+          drawer: const AppDrawer(),
+          appBar: AppBar(
+            backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+            elevation: 0,
+            title: const Text('Profile'),
+          ),
           body: SafeArea(
             child: Column(
               children: [
-                // Header with back button and title
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: isDark 
-                              ? AppColors.surfaceDark.withValues(alpha: 0.8)
-                              : AppColors.surfaceLight.withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: Icon(
-                            Icons.arrow_back,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        'Profile',
-                        style: TextStyle(
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Spacer(),
-                      const SizedBox(width: 40), // Balance the back button
-                    ],
-                  ),
-                ),
-
                 // Profile Header Section
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -236,6 +206,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
+          ),
+          bottomNavigationBar: const CustomBottomNavigation(
+            currentIndex: 4, // Profile tab index
           ),
         );
       },

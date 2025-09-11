@@ -25,8 +25,46 @@ void main() async {
   );
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
+  }
+
+  void _loadInitialData() {
+    // Load profile data when app starts if user is authenticated
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final supabase = Supabase.instance.client;
+      if (supabase.auth.currentUser != null) {
+        final profileProvider = context.read<ProfileProvider>();
+        profileProvider.loadProfile();
+      }
+
+      // Listen to auth state changes and load profile when user signs in
+      supabase.auth.onAuthStateChange.listen((data) {
+        if (!mounted) return;
+        
+        final profileProvider = context.read<ProfileProvider>();
+        final session = data.session;
+        
+        if (session != null) {
+          // User signed in, load profile
+          profileProvider.loadProfile();
+        } else {
+          // User signed out, clear profile
+          profileProvider.clearProfile();
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

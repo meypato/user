@@ -8,6 +8,7 @@ import '../screens/home/home_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/profile_detail_screen.dart';
 import '../screens/settings/settings_screen.dart';
+import '../screens/rent/rent_screen.dart';
 import '../services/auth_service.dart';
 
 class AppRouter {
@@ -60,6 +61,11 @@ class AppRouter {
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
       ),
+      GoRoute(
+        path: '/rent',
+        name: 'rent',
+        builder: (context, state) => const RentScreen(),
+      ),
     ],
   );
 }
@@ -87,6 +93,7 @@ class RouteNames {
   static const String profile = 'profile';
   static const String profileDetails = 'profile-details';
   static const String settings = 'settings';
+  static const String rent = 'rent';
 }
 
 // Route paths for easy reference
@@ -97,4 +104,5 @@ class RoutePaths {
   static const String profile = '/profile';
   static const String profileDetails = '/profile-details';
   static const String settings = '/settings';
+  static const String rent = '/rent';
 }
