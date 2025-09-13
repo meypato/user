@@ -30,7 +30,8 @@ class RoomService {
               state_id,
               city_id,
               building_type,
-              is_active
+              is_active,
+              cities(name)
             )
           ''')
           .eq('availability_status', 'available')
@@ -103,17 +104,51 @@ class RoomService {
               contact_person_name,
               contact_person_phone,
               photos,
-              rules_file_url
+              rules_file_url,
+              cities(name)
             )
           ''')
           .eq('id', roomId)
           .maybeSingle();
 
       if (response == null) return null;
-      
+
       return Room.fromJson(response);
     } catch (e) {
       throw Exception('Failed to fetch room: $e');
+    }
+  }
+
+  // Get room details with building and city info (using working nested query pattern)
+  static Future<RoomDetail?> getRoomDetail(String roomId) async {
+    try {
+      final response = await _supabase
+          .from('rooms')
+          .select('''
+            *,
+            buildings!inner(
+              id,
+              name,
+              address_line1,
+              address_line2,
+              state_id,
+              city_id,
+              building_type,
+              is_active,
+              contact_person_name,
+              contact_person_phone,
+              photos,
+              cities(name)
+            )
+          ''')
+          .eq('id', roomId)
+          .maybeSingle();
+
+      if (response == null) return null;
+
+      return RoomDetail.fromNestedJson(response);
+    } catch (e) {
+      throw Exception('Failed to fetch room details: $e');
     }
   }
 
@@ -138,7 +173,8 @@ class RoomService {
               state_id,
               city_id,
               building_type,
-              is_active
+              is_active,
+              cities(name)
             )
           ''')
           .eq('availability_status', 'available')
@@ -200,7 +236,8 @@ class RoomService {
               building_type,
               is_active,
               building_tribe_exceptions(tribe_id),
-              building_profession_exceptions(profession_id)
+              building_profession_exceptions(profession_id),
+              cities(name)
             )
           ''')
           .eq('availability_status', 'available')
@@ -295,7 +332,8 @@ class RoomService {
               building_type,
               latitude,
               longitude,
-              is_active
+              is_active,
+              cities(name)
             )
           ''')
           .eq('availability_status', 'available')

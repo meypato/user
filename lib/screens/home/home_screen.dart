@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/bottom_navigation.dart';
+import '../../themes/app_colour.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,13 +16,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: theme.colorScheme.surface,
       drawer: const AppDrawer(),
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
-        title: const Text('Home'),
+        title: Text(
+          'Home',
+          style: TextStyle(
+            color: theme.brightness == Brightness.dark 
+                ? AppColors.textPrimaryDark 
+                : AppColors.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        iconTheme: IconThemeData(
+          color: theme.brightness == Brightness.dark 
+              ? AppColors.textPrimaryDark 
+              : AppColors.textPrimary,
+        ),
       ),
       body: SafeArea(
         child: Padding(
@@ -29,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _buildCurrentScreen(),
         ),
       ),
+      extendBody: true,
       bottomNavigationBar: const CustomBottomNavigation(
         currentIndex: 0, // Always 0 for home screen
       ),

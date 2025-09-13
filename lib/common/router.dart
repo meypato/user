@@ -9,6 +9,7 @@ import '../screens/profile/profile_screen.dart';
 import '../screens/profile/profile_detail_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/rent/rent_screen.dart';
+import '../screens/rent/rent_detail_screen.dart';
 import '../services/auth_service.dart';
 
 class AppRouter {
@@ -65,6 +66,16 @@ class AppRouter {
         path: '/rent',
         name: 'rent',
         builder: (context, state) => const RentScreen(),
+        routes: [
+          GoRoute(
+            path: ':rentId',
+            name: 'rent-detail',
+            builder: (context, state) {
+              final rentId = state.pathParameters['rentId']!;
+              return RentDetailScreen(rentId: rentId);
+            },
+          ),
+        ],
       ),
     ],
   );
@@ -94,6 +105,7 @@ class RouteNames {
   static const String profileDetails = 'profile-details';
   static const String settings = 'settings';
   static const String rent = 'rent';
+  static const String rentDetail = 'rent-detail';
 }
 
 // Route paths for easy reference
@@ -105,4 +117,5 @@ class RoutePaths {
   static const String profileDetails = '/profile-details';
   static const String settings = '/settings';
   static const String rent = '/rent';
+  static const String rentDetail = '/rent/:rentId';
 }

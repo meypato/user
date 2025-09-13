@@ -2,6 +2,7 @@ export 'enums.dart';
 export 'profile.dart';
 export 'building.dart';
 export 'room.dart';
+export 'room_detail.dart';
 export 'subscription.dart';
 export 'payment.dart';
 export 'review.dart';

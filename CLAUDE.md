@@ -66,6 +66,7 @@ meypato/
 │   │   ├── reference_models.dart      # Location models (State, City, etc.)
 │   │   ├── review.dart                # Review/Feedback model
 │   │   ├── room.dart                  # Room/Rental unit model
+│   │   ├── room_detail.dart           # Comprehensive room detail model with nested data
 │   │   └── subscription.dart          # Tenancy/Subscription model
 │   ├── screens/                       # UI screens by feature
 │   │   ├── auth/                      # Authentication screens
@@ -74,7 +75,8 @@ meypato/
 │   │   ├── home/                      # Main app screens
 │   │   │   └── home_screen.dart       # Search/welcome screen with drawer + bottom nav
 │   │   ├── rent/                      # Property rental screens
-│   │   │   └── rent_screen.dart       # Room listings with drawer + bottom nav
+│   │   │   ├── rent_screen.dart       # Room listings with drawer + bottom nav
+│   │   │   └── rent_detail_screen.dart # Detailed room view with photo gallery
 │   │   ├── profile/                   # User profile screens
 │   │   │   ├── profile_screen.dart    # Profile overview with drawer + bottom nav
 │   │   │   └── profile_detail_screen.dart # Profile editing
@@ -92,7 +94,8 @@ meypato/
 │   │   └── theme_provider.dart        # Theme state management
 │   ├── widgets/                       # Reusable UI components
 │   │   ├── app_drawer.dart            # Beautiful drawer navigation with profile integration
-│   │   ├── bottom_navigation.dart     # Custom bottom navigation with routing
+│   │   ├── bottom_navigation.dart     # Compact floating bottom navigation with routing
+│   │   ├── rent_item_card.dart        # Horizontal room card with photo and details
 │   │   └── theme_toggle_button.dart   # Theme switching widgets
 │   └── main.dart                      # App entry point
 ├── assets/                            # Static assets
@@ -172,7 +175,7 @@ meypato/
 ```
 Bottom Navigation:
 ├── Home (index 0) → /home (HomeScreen)
-├── Rent (index 1) → /rent (RentScreen) 
+├── Rent (index 1) → /rent (RentScreen) → /rent/:rentId (RentDetailScreen)
 ├── Favorites (index 2) → /home (placeholder)
 ├── Near Me (index 3) → /home (placeholder)
 └── Profile (index 4) → /profile (ProfileScreen)
@@ -183,6 +186,10 @@ Drawer Navigation:
 ├── Profile → /profile
 ├── Settings → /settings
 └── Secondary items (Favorites, Near Me, Notifications, Help)
+
+Nested Routes:
+└── /rent (RentScreen)
+    └── /:rentId (RentDetailScreen) # Proper parent-child relationship
 ```
 
 ### **Architecture Benefits**
@@ -190,6 +197,34 @@ Drawer Navigation:
 - **Easy Maintenance**: Add new screens without touching navigation logic
 - **Consistent UX**: Same navigation experience across all screens
 - **Clean Code**: No duplicate navigation logic or mixed concerns
+
+---
+
+## UI/UX Design System
+
+### **Modern Floating Navigation**
+- **Compact Design**: 60px height (reduced from 85px) with pill-shaped floating design
+- **Smart Layout**: 20px margins create floating effect above content
+- **Simplified Icons**: Removed active indicator dots for cleaner appearance
+- **Theme Responsive**: Adapts colors automatically for light/dark modes
+- **Content Flow**: Uses `extendBody: true` to allow content behind transparent navigation
+
+### **Rent Screen Optimization**
+- **Horizontal Room Cards**: Large 140x140px left-side photos with details on right
+- **Compact Layout**: Removed SafeArea constraints for full-screen content flow
+- **Smart Scrolling**: 100px bottom padding allows scrolling past floating navigation
+- **Modern Card Design**: Subtle shadows, green price chips, optimized spacing
+- **Touch-Friendly**: Larger tap targets and readable text sizes
+
+### **App Bar Consistency**
+- **Theme-Aware Colors**: Proper text/icon colors for light mode visibility
+- **Consistent Styling**: 20px font size, 600 weight across all screens
+- **Clean Design**: Zero elevation with surface-matching backgrounds
+
+### **Performance Optimizations**
+- **Efficient Layouts**: Removed unnecessary containers and SafeArea constraints
+- **Smooth Animations**: 200ms transitions for navigation state changes
+- **Memory Efficient**: Optimized widget rebuilds and state management
 
 ---
 
@@ -225,11 +260,15 @@ flutter build ios --release    # iOS release
 ### ✅ Completed Features
 - **Foundation**: Flutter project setup + Supabase integration
 - **Authentication**: Email/password + Google Sign-In + auth guards
-- **UI/Navigation**: Beautiful drawer + smart bottom navigation + light/dark themes
+- **UI/Navigation**: Beautiful drawer + compact floating bottom navigation + light/dark themes
 - **Profile Management**: Complete CRUD with state management
-- **Data Models**: 9 models matching database schema
+- **Data Models**: 10 models matching database schema (including RoomDetail)
 - **Core Screens**: Login, Register, Home, Rent, Profile, Settings
-- **Navigation Architecture**: Clean screen separation with shared navigation components
+- **Rent Detail Screen**: Complete room detail view with photo gallery, amenities, owner info
+- **Navigation Architecture**: Nested GoRouter structure with proper parent-child relationships
+- **Modern UI Design**: Compact floating navigation, horizontal room cards, immersive photo headers
+- **Theme Integration**: Proper app bar colors, consistent theming across all screens
+- **Data Layer**: Working Supabase nested queries for building/city information
 
 ### ⏳ Next Steps
 1. **Property Search**: Building/room browsing with APST filtering

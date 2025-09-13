@@ -3,6 +3,7 @@ import '../../models/models.dart' hide State;
 import '../../services/room_service.dart';
 import '../../themes/app_colour.dart';
 import '../../widgets/bottom_navigation.dart';
+import '../../widgets/rent_item_card.dart';
 import '../../widgets/app_drawer.dart';
 
 class RentScreen extends StatefulWidget {
@@ -54,106 +55,98 @@ class _RentScreenState extends State<RentScreen> {
       appBar: AppBar(
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
-        title: const Text('Rent'),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              _buildHeader(theme),
-              const SizedBox(height: 24),
-              
-              // Search Bar
-              _buildSearchBar(theme),
-              const SizedBox(height: 24),
-              
-              // Content
-              Expanded(
-                child: _buildContent(theme),
-              ),
-            ],
+        title: Text(
+          'Rent',
+          style: TextStyle(
+            color: theme.brightness == Brightness.dark 
+                ? AppColors.textPrimaryDark 
+                : AppColors.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
           ),
         ),
+        iconTheme: IconThemeData(
+          color: theme.brightness == Brightness.dark 
+              ? AppColors.textPrimaryDark 
+              : AppColors.textPrimary,
+        ),
       ),
+      body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Just Search Bar and Filter
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+              child: Row(
+                children: [
+                  Expanded(child: _buildUltraCompactSearchBar(theme)),
+                  const SizedBox(width: 12),
+                  _buildFilterButton(theme),
+                ],
+              ),
+            ),
+            
+            // Content without horizontal padding
+            Expanded(
+              child: _buildContent(theme),
+            ),
+          ],
+        ),
+      extendBody: true,
       bottomNavigationBar: const CustomBottomNavigation(
         currentIndex: 1, // Rent tab index
       ),
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Available Rooms',
-              style: TextStyle(
-                color: theme.textTheme.bodyLarge?.color,
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Find your perfect rental',
-              style: TextStyle(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            Icons.filter_list,
-            color: theme.colorScheme.primary,
-            size: 20,
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildSearchBar(ThemeData theme) {
+  Widget _buildUltraCompactSearchBar(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+          color: theme.colorScheme.outline.withValues(alpha: 0.12),
         ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.search,
-            color: theme.iconTheme.color?.withValues(alpha: 0.5),
-            size: 20,
+            color: theme.iconTheme.color?.withValues(alpha: 0.6),
+            size: 16,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Search rooms, buildings...',
+              'Search rooms...',
               style: TextStyle(
                 color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
-                fontSize: 16,
+                fontSize: 14,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterButton(ThemeData theme) {
+    return GestureDetector(
+      onTap: () => _showFilterModal(context),
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          Icons.tune,
+          color: theme.colorScheme.primary,
+          size: 16,
+        ),
       ),
     );
   }
@@ -268,25 +261,30 @@ class _RentScreenState extends State<RentScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Results count
+        // Minimal results count
         Padding(
-          padding: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 6),
           child: Text(
-            '${_rooms.length} rooms available',
+            '${_rooms.length} available',
             style: TextStyle(
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-              fontSize: 14,
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+              fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
           ),
         ),
         
-        // Rooms list
+        // Rooms list (items have their own horizontal padding)
         Expanded(
           child: ListView.builder(
+            padding: const EdgeInsets.only(top: 2, bottom: 100), // Content flows behind nav + scroll padding
             itemCount: _rooms.length,
             itemBuilder: (context, index) {
-              return _buildRoomCard(_rooms[index], theme);
+              return RentItemCard(
+                room: _rooms[index],
+                isFirst: index == 0,
+                // Let RentItemCard handle navigation with its default onTap
+              );
             },
           ),
         ),
@@ -294,108 +292,134 @@ class _RentScreenState extends State<RentScreen> {
     );
   }
 
-  Widget _buildRoomCard(Room room, ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: isDark 
-                ? AppColors.shadowDark.withValues(alpha: 0.3)
-                : AppColors.shadowLight.withValues(alpha: 0.5),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+  void _showFilterModal(BuildContext context) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => _FilterModal(),
+        transitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: animation.drive(
+              Tween(begin: const Offset(0, 1), end: Offset.zero)
+                  .chain(CurveTween(curve: Curves.easeInOut)),
+            ),
+            child: child,
+          );
+        },
+        fullscreenDialog: true,
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            // TODO: Navigate to room details
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Room header
-                Row(
-                  children: [
-                    // Room image placeholder
-                    Container(
-                      width: 60,
-                      height: 60,
+    );
+  }
+}
+
+class _FilterModal extends StatefulWidget {
+  @override
+  _FilterModalState createState() => _FilterModalState();
+}
+
+class _FilterModalState extends State<_FilterModal> {
+  double _priceRange = 5000;
+  String _selectedRoomType = 'Any';
+  String _selectedCity = 'Any';
+  int _maxOccupancy = 1;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border(
+                  bottom: BorderSide(
+                    color: theme.dividerColor.withValues(alpha: 0.1),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: room.hasPhotos
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                room.photos.first,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.home,
-                                    color: AppColors.primaryBlue,
-                                    size: 30,
-                                  );
-                                },
-                              ),
-                            )
-                          : Icon(
-                              Icons.home,
-                              color: AppColors.primaryBlue,
-                              size: 30,
-                            ),
+                      child: Icon(
+                        Icons.close,
+                        color: theme.colorScheme.primary,
+                        size: 20,
+                      ),
                     ),
-                    const SizedBox(width: 16),
-                    
-                    // Room info
-                    Expanded(
-                      child: Column(
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      'Filter Rooms',
+                      style: TextStyle(
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _priceRange = 5000;
+                        _selectedRoomType = 'Any';
+                        _selectedCity = 'Any';
+                        _maxOccupancy = 1;
+                      });
+                    },
+                    child: Text(
+                      'Reset',
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Filter Options
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Price Range
+                    _buildFilterSection(
+                      'Price Range',
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            room.fullName,
-                            style: TextStyle(
-                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Icon(
-                                Icons.category_outlined,
-                                size: 14,
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                              ),
-                              const SizedBox(width: 4),
                               Text(
-                                room.roomType.displayName,
+                                'Up to ₹${_priceRange.toInt()}',
                                 style: TextStyle(
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                                  fontSize: 12,
+                                  color: AppColors.primaryBlue,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              const SizedBox(width: 16),
-                              Icon(
-                                Icons.people_outline,
-                                size: 14,
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                              ),
-                              const SizedBox(width: 4),
                               Text(
-                                '${room.maximumOccupancy} ${room.maximumOccupancy == 1 ? 'person' : 'people'}',
+                                'per month',
                                 style: TextStyle(
                                   color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                                   fontSize: 12,
@@ -403,98 +427,239 @@ class _RentScreenState extends State<RentScreen> {
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                    
-                    // Status badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.success.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        'Available',
-                        style: TextStyle(
-                          color: AppColors.success,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // Description (if available)
-                if (room.hasDescription) ...[
-                  Text(
-                    room.description!,
-                    style: TextStyle(
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                      fontSize: 14,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                
-                // Pricing and action
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          room.formattedFee,
-                          style: TextStyle(
-                            color: AppColors.primaryBlue,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        if (room.hasSecurityFee) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            'Security: ${room.formattedSecurityFee}',
-                            style: TextStyle(
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                              fontSize: 12,
+                          const SizedBox(height: 10),
+                          SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              activeTrackColor: AppColors.primaryBlue,
+                              thumbColor: AppColors.primaryBlue,
+                              overlayColor: AppColors.primaryBlue.withValues(alpha: 0.1),
+                            ),
+                            child: Slider(
+                              value: _priceRange,
+                              min: 1000,
+                              max: 25000,
+                              divisions: 24,
+                              onChanged: (value) => setState(() => _priceRange = value),
                             ),
                           ),
                         ],
-                      ],
+                      ),
+                      theme,
                     ),
-                    
-                    ElevatedButton(
-                      onPressed: () {
-                        // TODO: Navigate to room details or booking
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryBlue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 0,
+
+                    const SizedBox(height: 24),
+
+                    // Room Type
+                    _buildFilterSection(
+                      'Room Type',
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: ['Any', 'Single', 'Double', 'Shared', 'Studio'].map(
+                          (type) => _buildChip(type, _selectedRoomType == type, () {
+                            setState(() => _selectedRoomType = type);
+                          }, theme),
+                        ).toList(),
                       ),
-                      child: const Text(
-                        'View Details',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      theme,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // City
+                    _buildFilterSection(
+                      'City',
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: ['Any', 'Itanagar', 'Naharlagun', 'Pasighat', 'Tawang'].map(
+                          (city) => _buildChip(city, _selectedCity == city, () {
+                            setState(() => _selectedCity = city);
+                          }, theme),
+                        ).toList(),
                       ),
+                      theme,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Max Occupancy
+                    _buildFilterSection(
+                      'Max Occupancy',
+                      Row(
+                        children: [
+                          Text(
+                            '$_maxOccupancy',
+                            style: TextStyle(
+                              color: AppColors.primaryBlue,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            _maxOccupancy == 1 ? ' person' : ' people',
+                            style: TextStyle(
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const Spacer(),
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  if (_maxOccupancy > 1) {
+                                    setState(() => _maxOccupancy--);
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Icon(
+                                    Icons.remove,
+                                    color: theme.colorScheme.primary,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              GestureDetector(
+                                onTap: () {
+                                  if (_maxOccupancy < 6) {
+                                    setState(() => _maxOccupancy++);
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Icon(
+                                    Icons.add,
+                                    color: theme.colorScheme.primary,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      theme,
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
+
+            // Apply Button
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border(
+                  top: BorderSide(
+                    color: theme.dividerColor.withValues(alpha: 0.1),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // TODO: Apply filters
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryBlue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Apply Filters',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterSection(String title, Widget content, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.1)
+                : AppColors.primaryBlue.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          content,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChip(String label, bool isSelected, VoidCallback onTap, ThemeData theme) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primaryBlue
+              : theme.colorScheme.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primaryBlue
+                : AppColors.primaryBlue.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected
+                ? Colors.white
+                : AppColors.primaryBlue,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
         ),
       ),

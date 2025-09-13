@@ -37,10 +37,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           appBar: AppBar(
             backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
             elevation: 0,
-            title: const Text('Profile'),
+            title: Text(
+              'Profile',
+              style: TextStyle(
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            iconTheme: IconThemeData(
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
           ),
           body: SafeArea(
-            child: Column(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 100), // Space for floating nav
+              child: Column(
               children: [
                 // Profile Header Section
                 Padding(
@@ -207,6 +219,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
+          ),
+          extendBody: true,
           bottomNavigationBar: const CustomBottomNavigation(
             currentIndex: 4, // Profile tab index
           ),

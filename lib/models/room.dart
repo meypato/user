@@ -16,6 +16,10 @@ class Room {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  // Building details (from JOIN)
+  final String? buildingName;
+  final String? cityName;
+
   const Room({
     required this.id,
     required this.buildingId,
@@ -31,6 +35,8 @@ class Room {
     this.photos = const [],
     required this.createdAt,
     required this.updatedAt,
+    this.buildingName,
+    this.cityName,
   });
 
   factory Room.fromJson(Map<String, dynamic> json) {
@@ -38,6 +44,19 @@ class Room {
     if (json['photos'] != null) {
       if (json['photos'] is List) {
         photosList = (json['photos'] as List).map((e) => e.toString()).toList();
+      }
+    }
+
+    // Extract building and city data from nested structure
+    String? buildingName;
+    String? cityName;
+
+    if (json['buildings'] != null) {
+      final building = json['buildings'];
+      buildingName = building['name'] as String?;
+
+      if (building['cities'] != null) {
+        cityName = building['cities']['name'] as String?;
       }
     }
 
@@ -56,6 +75,8 @@ class Room {
       photos: photosList,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      buildingName: buildingName,
+      cityName: cityName,
     );
   }
 
@@ -75,6 +96,8 @@ class Room {
       'photos': photos,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'building_name': buildingName,
+      'city_name': cityName,
     };
   }
 
@@ -90,6 +113,8 @@ class Room {
     String? description,
     List<String>? photos,
     DateTime? updatedAt,
+    String? buildingName,
+    String? cityName,
   }) {
     return Room(
       id: id,
@@ -106,6 +131,8 @@ class Room {
       photos: photos ?? this.photos,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
+      buildingName: buildingName ?? this.buildingName,
+      cityName: cityName ?? this.cityName,
     );
   }
 

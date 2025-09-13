@@ -16,83 +16,69 @@ class CustomBottomNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: theme.brightness == Brightness.dark
-              ? [
-                  AppColors.backgroundDark.withValues(alpha: 0.95),
-                  AppColors.backgroundDark,
-                ]
-              : [
-                  AppColors.backgroundSecondary.withValues(alpha: 0.95),
-                  AppColors.backgroundSecondary,
-                ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.brightness == Brightness.dark
-                ? AppColors.shadowDark
-                : AppColors.shadowLight,
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
-        border: Border(
-          top: BorderSide(
-            color: theme.brightness == Brightness.dark
-                ? AppColors.borderDark.withValues(alpha: 0.2)
-                : AppColors.borderLight.withValues(alpha: 0.2),
-            width: 1,
-          ),
-        ),
-      ),
+      margin: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
       child: SafeArea(
         child: Container(
-          height: 85,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(
-                context: context,
-                icon: Icons.search,
-                label: 'Home',
-                index: 0,
-                isSelected: currentIndex == 0,
-              ),
-              _buildNavItem(
-                context: context,
-                icon: Icons.apartment_outlined,
-                label: 'Rent',
-                index: 1,
-                isSelected: currentIndex == 1,
-              ),
-              _buildNavItem(
-                context: context,
-                icon: Icons.favorite_outline,
-                label: 'Favorites',
-                index: 2,
-                isSelected: currentIndex == 2,
-              ),
-              _buildNavItem(
-                context: context,
-                icon: Icons.location_on_outlined,
-                label: 'Near Me',
-                index: 3,
-                isSelected: currentIndex == 3,
-              ),
-              _buildNavItem(
-                context: context,
-                icon: Icons.person_outline,
-                label: 'Profile',
-                index: 4,
-                isSelected: currentIndex == 4,
+          height: 60, // Much more compact
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : Colors.white,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: isDark 
+                    ? AppColors.shadowDark.withValues(alpha: 0.3)
+                    : AppColors.shadowLight.withValues(alpha: 0.2),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+                spreadRadius: 0,
               ),
             ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.search,
+                  label: 'Home',
+                  index: 0,
+                  isSelected: currentIndex == 0,
+                ),
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.apartment_outlined,
+                  label: 'Rent',
+                  index: 1,
+                  isSelected: currentIndex == 1,
+                ),
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.favorite_outline,
+                  label: 'Favorites',
+                  index: 2,
+                  isSelected: currentIndex == 2,
+                ),
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.location_on_outlined,
+                  label: 'Near Me',
+                  index: 3,
+                  isSelected: currentIndex == 3,
+                ),
+                _buildNavItem(
+                  context: context,
+                  icon: Icons.person_outline,
+                  label: 'Profile',
+                  index: 4,
+                  isSelected: currentIndex == 4,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -107,81 +93,57 @@ class CustomBottomNavigation extends StatelessWidget {
     required bool isSelected,
   }) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
     return Expanded(
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _handleNavigation(context, index),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(20),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(vertical: 6),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(20),
               color: isSelected 
                   ? AppColors.primaryBlue.withValues(alpha: 0.1)
                   : Colors.transparent,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Background circle for selected state
-                    if (isSelected)
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBlue.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    // Icon
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: Icon(
-                        isSelected ? _getFilledIcon(icon) : icon,
-                        key: ValueKey(isSelected),
-                        color: isSelected 
-                            ? AppColors.primaryBlue
-                            : (theme.brightness == Brightness.dark
-                                ? AppColors.textSecondaryDark.withValues(alpha: 0.8)
-                                : AppColors.textSecondary.withValues(alpha: 0.8)),
-                        size: 20,
-                      ),
-                    ),
-                  ],
+                // Icon with simpler design
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    isSelected ? _getFilledIcon(icon) : icon,
+                    key: ValueKey(isSelected),
+                    color: isSelected 
+                        ? AppColors.primaryBlue
+                        : (isDark
+                            ? AppColors.textSecondaryDark.withValues(alpha: 0.7)
+                            : AppColors.textSecondary.withValues(alpha: 0.7)),
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(height: 2),
-                // Label
+                // Compact label
                 AnimatedDefaultTextStyle(
                   duration: const Duration(milliseconds: 200),
                   style: TextStyle(
                     color: isSelected 
                         ? AppColors.primaryBlue
-                        : (theme.brightness == Brightness.dark
-                            ? AppColors.textSecondaryDark.withValues(alpha: 0.7)
-                            : AppColors.textSecondary.withValues(alpha: 0.7)),
-                    fontSize: 11,
+                        : (isDark
+                            ? AppColors.textSecondaryDark.withValues(alpha: 0.6)
+                            : AppColors.textSecondary.withValues(alpha: 0.6)),
+                    fontSize: 10,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    letterSpacing: isSelected ? 0.1 : 0.0,
                   ),
                   child: Text(label),
                 ),
-                // Active indicator dot
-                const SizedBox(height: 2),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: isSelected ? 4 : 0,
-                  height: isSelected ? 4 : 0,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryBlue,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+                // No dots - removed completely!
               ],
             ),
           ),
