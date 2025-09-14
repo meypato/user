@@ -56,7 +56,7 @@ class _RentScreenState extends State<RentScreen> {
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         title: Text(
-          'Rent',
+          'Rooms',
           style: TextStyle(
             color: theme.brightness == Brightness.dark 
                 ? AppColors.textPrimaryDark 

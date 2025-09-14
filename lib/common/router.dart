@@ -10,6 +10,8 @@ import '../screens/profile/profile_detail_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/rent/rent_screen.dart';
 import '../screens/rent/rent_detail_screen.dart';
+import '../screens/building/building_screen.dart';
+import '../screens/favorites/favorites_screen.dart';
 import '../services/auth_service.dart';
 
 class AppRouter {
@@ -77,6 +79,16 @@ class AppRouter {
           ),
         ],
       ),
+      GoRoute(
+        path: '/building',
+        name: 'building',
+        builder: (context, state) => const BuildingScreen(),
+      ),
+      GoRoute(
+        path: '/favorites',
+        name: 'favorites',
+        builder: (context, state) => const FavoritesScreen(),
+      ),
     ],
   );
 }
@@ -106,6 +118,8 @@ class RouteNames {
   static const String settings = 'settings';
   static const String rent = 'rent';
   static const String rentDetail = 'rent-detail';
+  static const String building = 'building';
+  static const String favorites = 'favorites';
 }
 
 // Route paths for easy reference
@@ -118,4 +132,6 @@ class RoutePaths {
   static const String settings = '/settings';
   static const String rent = '/rent';
   static const String rentDetail = '/rent/:rentId';
+  static const String building = '/building';
+  static const String favorites = '/favorites';
 }

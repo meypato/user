@@ -134,12 +134,22 @@ class AppDrawer extends StatelessWidget {
                     ),
                     _buildBeautifulMenuItem(
                       context,
-                      icon: Icons.apartment_outlined,
-                      title: 'Rent',
+                      icon: Icons.bed_outlined,
+                      title: 'Rooms',
                       color: AppColors.primaryBlue,
                       onTap: () {
                         Navigator.pop(context);
                         context.go(RoutePaths.rent);
+                      },
+                    ),
+                    _buildBeautifulMenuItem(
+                      context,
+                      icon: Icons.apartment_outlined,
+                      title: 'Building',
+                      color: AppColors.primaryBlue,
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.go(RoutePaths.building);
                       },
                     ),
                     _buildBeautifulMenuItem(
@@ -175,17 +185,7 @@ class AppDrawer extends StatelessWidget {
                       color: AppColors.textSecondary,
                       onTap: () {
                         Navigator.pop(context);
-                        // TODO: Add favorites route when screen is created
-                      },
-                    ),
-                    _buildBeautifulMenuItem(
-                      context,
-                      icon: Icons.location_on_outlined,
-                      title: 'Near Me',
-                      color: AppColors.textSecondary,
-                      onTap: () {
-                        Navigator.pop(context);
-                        // TODO: Add nearby route when screen is created
+                        context.go(RoutePaths.favorites);
                       },
                     ),
                     _buildBeautifulMenuItem(

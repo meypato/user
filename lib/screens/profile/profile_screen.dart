@@ -49,11 +49,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
             ),
           ),
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 100), // Space for floating nav
-              child: Column(
-              children: [
+          body: SingleChildScrollView(
+            child: Column(
+                children: [
+                // Top padding for status bar
+                SizedBox(height: MediaQuery.of(context).padding.top),
                 // Profile Header Section
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -146,13 +146,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 40),
 
                 // Menu Items
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: [
-                        // My Subscriptions
-                        _buildMenuItem(
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      // My Subscriptions
+                      _buildMenuItem(
                           icon: Icons.home,
                           title: 'My Subscriptions',
                           color: AppColors.error,
@@ -162,10 +161,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                           isDark: isDark,
                         ),
-                        const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                        // Profile Edit
-                        _buildMenuItem(
+                      // Profile Edit
+                      _buildMenuItem(
                           icon: Icons.edit,
                           title: 'Profile Edit',
                           color: AppColors.textSecondary,
@@ -174,10 +173,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                           isDark: isDark,
                         ),
-                        const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                        // Settings
-                        _buildMenuItem(
+                      // Settings
+                      _buildMenuItem(
                           icon: Icons.settings,
                           title: 'Settings',
                           color: AppColors.textSecondary,
@@ -186,10 +185,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                           isDark: isDark,
                         ),
-                        const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                        // My Wallet
-                        _buildMenuItem(
+                      // My Wallet
+                      _buildMenuItem(
                           icon: Icons.account_balance_wallet,
                           title: 'My Wallet',
                           color: AppColors.textSecondary,
@@ -198,10 +197,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                           isDark: isDark,
                         ),
-                        const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                        // Help Center
-                        _buildMenuItem(
+                      // Help Center
+                      _buildMenuItem(
                           icon: Icons.help_center,
                           title: 'Help Center',
                           color: AppColors.textSecondary,
@@ -210,16 +209,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                           isDark: isDark,
                         ),
-
-                        const Spacer(),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
-              ],
+                // Bottom padding for floating navigation
+                const SizedBox(height: 100),
+                ],
+              ),
             ),
-          ),
-          ),
           extendBody: true,
           bottomNavigationBar: const CustomBottomNavigation(
             currentIndex: 4, // Profile tab index

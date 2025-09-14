@@ -74,9 +74,13 @@ meypato/
 │   │   │   └── register_screen.dart   # User registration
 │   │   ├── home/                      # Main app screens
 │   │   │   └── home_screen.dart       # Search/welcome screen with drawer + bottom nav
-│   │   ├── rent/                      # Property rental screens
+│   │   ├── rent/                      # Property rental screens (Rooms)
 │   │   │   ├── rent_screen.dart       # Room listings with drawer + bottom nav
 │   │   │   └── rent_detail_screen.dart # Detailed room view with photo gallery
+│   │   ├── building/                  # Building screens
+│   │   │   └── building_screen.dart   # Building listings with drawer + bottom nav
+│   │   ├── favorites/                 # Favorites screens
+│   │   │   └── favorites_screen.dart  # Favorites overview with drawer + bottom nav
 │   │   ├── profile/                   # User profile screens
 │   │   │   ├── profile_screen.dart    # Profile overview with drawer + bottom nav
 │   │   │   └── profile_detail_screen.dart # Profile editing
@@ -175,17 +179,18 @@ meypato/
 ```
 Bottom Navigation:
 ├── Home (index 0) → /home (HomeScreen)
-├── Rent (index 1) → /rent (RentScreen) → /rent/:rentId (RentDetailScreen)
-├── Favorites (index 2) → /home (placeholder)
-├── Near Me (index 3) → /home (placeholder)
+├── Rooms (index 1) → /rent (RentScreen) → /rent/:rentId (RentDetailScreen)
+├── Building (index 2) → /building (BuildingScreen)
+├── Favorites (index 3) → /favorites (FavoritesScreen)
 └── Profile (index 4) → /profile (ProfileScreen)
 
 Drawer Navigation:
 ├── Home → /home
-├── Rent → /rent
+├── Rooms → /rent
+├── Building → /building
 ├── Profile → /profile
 ├── Settings → /settings
-└── Secondary items (Favorites, Near Me, Notifications, Help)
+└── Secondary items (Favorites → /favorites, Notifications, Help)
 
 Nested Routes:
 └── /rent (RentScreen)
@@ -208,6 +213,45 @@ Nested Routes:
 - **Simplified Icons**: Removed active indicator dots for cleaner appearance
 - **Theme Responsive**: Adapts colors automatically for light/dark modes
 - **Content Flow**: Uses `extendBody: true` to allow content behind transparent navigation
+
+### **CRITICAL: Bottom Navigation Screen Layout Pattern**
+⚠️ **For ALL screens with bottom navigation, use this exact pattern to avoid visual cutouts:**
+
+```dart
+Scaffold(
+  extendBody: true,
+  body: SingleChildScrollView(  // ❌ NO SafeArea wrapper here!
+    child: Column(
+      children: [
+        SizedBox(height: MediaQuery.of(context).padding.top), // Status bar padding
+        // ... your content ...
+        const SizedBox(height: 100), // Bottom navigation spacing
+      ],
+    ),
+  ),
+  bottomNavigationBar: const CustomBottomNavigation(...),
+)
+```
+
+**❌ WRONG Pattern (creates cutouts):**
+```dart
+body: SafeArea(  // This conflicts with extendBody: true
+  child: SingleScrollView(
+    padding: EdgeInsets.only(bottom: 100), // Root padding causes issues
+    child: Column(...)
+  )
+)
+```
+
+**✅ CORRECT Pattern:**
+- Remove `SafeArea` wrapper from body
+- Use manual status bar padding: `SizedBox(height: MediaQuery.of(context).padding.top)`
+- Add bottom spacing inside content: `SizedBox(height: 100)`
+- Content flows naturally behind floating navigation
+
+**✅ Successfully Applied To:**
+- ProfileScreen, BuildingScreen, FavoritesScreen (all cutout-free!)
+- RentScreen uses similar pattern with ListView padding
 
 ### **Rent Screen Optimization**
 - **Horizontal Room Cards**: Large 140x140px left-side photos with details on right
@@ -260,21 +304,26 @@ flutter build ios --release    # iOS release
 ### ✅ Completed Features
 - **Foundation**: Flutter project setup + Supabase integration
 - **Authentication**: Email/password + Google Sign-In + auth guards
-- **UI/Navigation**: Beautiful drawer + compact floating bottom navigation + light/dark themes
+- **UI/Navigation**: Beautiful drawer + compact floating blue bottom navigation + light/dark themes
 - **Profile Management**: Complete CRUD with state management
 - **Data Models**: 10 models matching database schema (including RoomDetail)
-- **Core Screens**: Login, Register, Home, Rent, Profile, Settings
-- **Rent Detail Screen**: Complete room detail view with photo gallery, amenities, owner info
+- **Core Screens**: Login, Register, Home, Rooms (formerly Rent), Building, Favorites, Profile, Settings
+- **Room Detail Screen**: Complete room detail view with photo gallery, amenities, owner info
+- **Building Screen**: Coming soon placeholder with feature preview
+- **Favorites Screen**: Mock implementation with empty state and feature preview
 - **Navigation Architecture**: Nested GoRouter structure with proper parent-child relationships
-- **Modern UI Design**: Compact floating navigation, horizontal room cards, immersive photo headers
+- **Modern UI Design**: Blue floating navigation, horizontal room cards, immersive photo headers
 - **Theme Integration**: Proper app bar colors, consistent theming across all screens
+- **Layout Optimization**: Fixed SafeArea cutout issues for floating navigation screens
 - **Data Layer**: Working Supabase nested queries for building/city information
 
 ### ⏳ Next Steps
 1. **Property Search**: Building/room browsing with APST filtering
-2. **Subscription System**: Rental agreements and payments
-3. **Reviews**: Rating system for buildings
-4. **Image Upload**: Photo management for properties/profiles
+2. **Favorites Functionality**: Actual save/remove favorites with data persistence
+3. **Subscription System**: Rental agreements and payments
+4. **Reviews**: Rating system for buildings
+5. **Image Upload**: Photo management for properties/profiles
+6. **Notification System**: Push notifications and in-app alerts
 
 ---
 

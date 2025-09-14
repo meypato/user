@@ -24,7 +24,7 @@ class CustomBottomNavigation extends StatelessWidget {
         child: Container(
           height: 60, // Much more compact
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : Colors.white,
+            color: isDark ? AppColors.surfaceDark : AppColors.primaryBlue,
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
@@ -51,22 +51,22 @@ class CustomBottomNavigation extends StatelessWidget {
                 ),
                 _buildNavItem(
                   context: context,
-                  icon: Icons.apartment_outlined,
-                  label: 'Rent',
+                  icon: Icons.bed_outlined,
+                  label: 'Rooms',
                   index: 1,
                   isSelected: currentIndex == 1,
                 ),
                 _buildNavItem(
                   context: context,
-                  icon: Icons.favorite_outline,
-                  label: 'Favorites',
+                  icon: Icons.apartment_outlined,
+                  label: 'Building',
                   index: 2,
                   isSelected: currentIndex == 2,
                 ),
                 _buildNavItem(
                   context: context,
-                  icon: Icons.location_on_outlined,
-                  label: 'Near Me',
+                  icon: Icons.favorite_outline,
+                  label: 'Favorites',
                   index: 3,
                   isSelected: currentIndex == 3,
                 ),
@@ -106,8 +106,10 @@ class CustomBottomNavigation extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: isSelected 
-                  ? AppColors.primaryBlue.withValues(alpha: 0.1)
+              color: isSelected
+                  ? (isDark
+                      ? AppColors.primaryBlue.withValues(alpha: 0.1)
+                      : Colors.white.withValues(alpha: 0.2))
                   : Colors.transparent,
             ),
             child: Column(
@@ -120,11 +122,11 @@ class CustomBottomNavigation extends StatelessWidget {
                   child: Icon(
                     isSelected ? _getFilledIcon(icon) : icon,
                     key: ValueKey(isSelected),
-                    color: isSelected 
-                        ? AppColors.primaryBlue
+                    color: isSelected
+                        ? (isDark ? AppColors.primaryBlue : Colors.white)
                         : (isDark
                             ? AppColors.textSecondaryDark.withValues(alpha: 0.7)
-                            : AppColors.textSecondary.withValues(alpha: 0.7)),
+                            : Colors.white.withValues(alpha: 0.7)),
                     size: 22,
                   ),
                 ),
@@ -133,11 +135,11 @@ class CustomBottomNavigation extends StatelessWidget {
                 AnimatedDefaultTextStyle(
                   duration: const Duration(milliseconds: 200),
                   style: TextStyle(
-                    color: isSelected 
-                        ? AppColors.primaryBlue
+                    color: isSelected
+                        ? (isDark ? AppColors.primaryBlue : Colors.white)
                         : (isDark
                             ? AppColors.textSecondaryDark.withValues(alpha: 0.6)
-                            : AppColors.textSecondary.withValues(alpha: 0.6)),
+                            : Colors.white.withValues(alpha: 0.6)),
                     fontSize: 10,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   ),
@@ -164,14 +166,14 @@ class CustomBottomNavigation extends StatelessWidget {
       case 0: // Home/Search
         context.go(RoutePaths.home);
         break;
-      case 1: // Rent
+      case 1: // Rooms
         context.go(RoutePaths.rent);
         break;
-      case 2: // Favorites
-        // TODO: Add favorites route when screen is created
+      case 2: // Building
+        context.go(RoutePaths.building);
         break;
-      case 3: // Near Me
-        // TODO: Add nearby route when screen is created
+      case 3: // Favorites
+        context.go(RoutePaths.favorites);
         break;
       case 4: // Profile
         context.go(RoutePaths.profile);
@@ -183,12 +185,12 @@ class CustomBottomNavigation extends StatelessWidget {
     switch (outlineIcon) {
       case Icons.search:
         return Icons.search;
+      case Icons.bed_outlined:
+        return Icons.bed;
       case Icons.apartment_outlined:
         return Icons.apartment;
       case Icons.favorite_outline:
         return Icons.favorite;
-      case Icons.location_on_outlined:
-        return Icons.location_on;
       case Icons.person_outline:
         return Icons.person;
       default:
