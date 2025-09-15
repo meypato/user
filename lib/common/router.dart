@@ -11,6 +11,8 @@ import '../screens/settings/settings_screen.dart';
 import '../screens/rent/rent_screen.dart';
 import '../screens/rent/rent_detail_screen.dart';
 import '../screens/building/building_screen.dart';
+import '../screens/building/building_detail_screen.dart';
+import '../screens/building/building_room_detail_screen.dart';
 import '../screens/favorites/favorites_screen.dart';
 import '../services/auth_service.dart';
 
@@ -83,6 +85,30 @@ class AppRouter {
         path: '/building',
         name: 'building',
         builder: (context, state) => const BuildingScreen(),
+        routes: [
+          GoRoute(
+            path: ':buildingId',
+            name: 'building-detail',
+            builder: (context, state) {
+              final buildingId = state.pathParameters['buildingId']!;
+              return BuildingDetailScreen(buildingId: buildingId);
+            },
+            routes: [
+              GoRoute(
+                path: 'room/:roomId',
+                name: 'building-room-detail',
+                builder: (context, state) {
+                  final buildingId = state.pathParameters['buildingId']!;
+                  final roomId = state.pathParameters['roomId']!;
+                  return BuildingRoomDetailScreen(
+                    buildingId: buildingId,
+                    roomId: roomId,
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
       ),
       GoRoute(
         path: '/favorites',
@@ -119,6 +145,8 @@ class RouteNames {
   static const String rent = 'rent';
   static const String rentDetail = 'rent-detail';
   static const String building = 'building';
+  static const String buildingDetail = 'building-detail';
+  static const String buildingRoomDetail = 'building-room-detail';
   static const String favorites = 'favorites';
 }
 
@@ -133,5 +161,7 @@ class RoutePaths {
   static const String rent = '/rent';
   static const String rentDetail = '/rent/:rentId';
   static const String building = '/building';
+  static const String buildingDetail = '/building/:buildingId';
+  static const String buildingRoomDetail = '/building/:buildingId/room/:roomId';
   static const String favorites = '/favorites';
 }
