@@ -24,7 +24,7 @@ class CustomBottomNavigation extends StatelessWidget {
         child: Container(
           height: 60, // Much more compact
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : AppColors.primaryBlue,
+            color: isDark ? const Color(0xFF1565C0) : AppColors.primaryBlue,
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
@@ -108,7 +108,7 @@ class CustomBottomNavigation extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               color: isSelected
                   ? (isDark
-                      ? AppColors.primaryBlue.withValues(alpha: 0.1)
+                      ? Colors.white.withValues(alpha: 0.15)
                       : Colors.white.withValues(alpha: 0.2))
                   : Colors.transparent,
             ),
@@ -123,9 +123,9 @@ class CustomBottomNavigation extends StatelessWidget {
                     isSelected ? _getFilledIcon(icon) : icon,
                     key: ValueKey(isSelected),
                     color: isSelected
-                        ? (isDark ? AppColors.primaryBlue : Colors.white)
+                        ? (isDark ? Colors.white : Colors.white)
                         : (isDark
-                            ? AppColors.textSecondaryDark.withValues(alpha: 0.7)
+                            ? Colors.white.withValues(alpha: 0.6)
                             : Colors.white.withValues(alpha: 0.7)),
                     size: 22,
                   ),
@@ -136,9 +136,9 @@ class CustomBottomNavigation extends StatelessWidget {
                   duration: const Duration(milliseconds: 200),
                   style: TextStyle(
                     color: isSelected
-                        ? (isDark ? AppColors.primaryBlue : Colors.white)
+                        ? (isDark ? Colors.white : Colors.white)
                         : (isDark
-                            ? AppColors.textSecondaryDark.withValues(alpha: 0.6)
+                            ? Colors.white.withValues(alpha: 0.5)
                             : Colors.white.withValues(alpha: 0.6)),
                     fontSize: 10,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
