@@ -572,15 +572,100 @@ class RoomService {
           .eq('availability_status', 'available');
 
       final Map<String, int> typeCounts = {};
-      
+
       for (final room in response) {
         final roomType = room['room_type'] as String;
         typeCounts[roomType] = (typeCounts[roomType] ?? 0) + 1;
       }
-      
+
       return typeCounts;
     } catch (e) {
       throw Exception('Failed to fetch room type counts: $e');
+    }
+  }
+
+  // Get distinct room types for dropdown
+  static Future<List<String>> getAvailableRoomTypes() async {
+    try {
+      final response = await _supabase
+          .from('rooms')
+          .select('room_type')
+          .eq('availability_status', 'available')
+          .order('room_type', ascending: true);
+
+      final Set<String> uniqueTypes = {};
+      for (final room in response) {
+        final roomType = room['room_type'] as String;
+        // Capitalize first letter for display
+        final displayType = roomType[0].toUpperCase() + roomType.substring(1);
+        uniqueTypes.add(displayType);
+      }
+
+      final List<String> sortedTypes = ['Any', ...uniqueTypes];
+      return sortedTypes;
+    } catch (e) {
+      throw Exception('Failed to fetch available room types: $e');
+    }
+  }
+
+  // Get distinct occupancy ranges for dropdown
+  static Future<List<String>> getAvailableOccupancyRanges() async {
+    try {
+      final response = await _supabase
+          .from('rooms')
+          .select('maximum_occupancy')
+          .eq('availability_status', 'available')
+          .order('maximum_occupancy', ascending: true);
+
+      final Set<int> uniqueOccupancies = {};
+      for (final room in response) {
+        final occupancy = room['maximum_occupancy'] as int;
+        uniqueOccupancies.add(occupancy);
+      }
+
+      // Create user-friendly occupancy labels
+      final List<String> occupancyRanges = ['Any'];
+      for (final occupancy in uniqueOccupancies.toList()..sort()) {
+        if (occupancy == 1) {
+          occupancyRanges.add('1 Person');
+        } else if (occupancy <= 4) {
+          occupancyRanges.add('$occupancy People');
+        } else {
+          occupancyRanges.add('$occupancy+ People');
+        }
+      }
+
+      // Remove duplicates and return
+      return occupancyRanges.toSet().toList();
+    } catch (e) {
+      throw Exception('Failed to fetch available occupancy ranges: $e');
+    }
+  }
+
+  // Get price range from available rooms
+  static Future<Map<String, double>> getAvailablePriceRange() async {
+    try {
+      final response = await _supabase
+          .from('rooms')
+          .select('fee')
+          .eq('availability_status', 'available')
+          .order('fee', ascending: true);
+
+      if (response.isEmpty) {
+        return {
+          'min': 2000.0,
+          'max': 30000.0,
+        };
+      }
+
+      final fees = response.map<double>((room) => (room['fee'] as num).toDouble()).toList();
+
+      return {
+        'min': fees.first,
+        'max': fees.last,
+      };
+    } catch (e) {
+      throw Exception('Failed to fetch price range: $e');
     }
   }
 }

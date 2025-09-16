@@ -178,6 +178,23 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  // Update user's city (for location change)
+  Future<bool> updateUserCity(String cityId) async {
+    if (_profile == null) return false;
+
+    try {
+      final success = await updateProfile(cityId: cityId);
+      if (success) {
+        // Reload profile to get updated city information
+        await loadProfile();
+      }
+      return success;
+    } catch (e) {
+      _setError('Failed to update city: $e');
+      return false;
+    }
+  }
+
   // Toggle edit mode
   void toggleEditMode() {
     _isEditing = !_isEditing;

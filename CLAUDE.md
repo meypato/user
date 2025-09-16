@@ -81,6 +81,8 @@ meypato/
 │   │   │   └── building_screen.dart   # Building listings with drawer + bottom nav
 │   │   ├── favorites/                 # Favorites screens
 │   │   │   └── favorites_screen.dart  # Favorites overview with drawer + bottom nav
+│   │   ├── location/                  # Location screens
+│   │   │   └── location_picker_screen.dart # Full-page city selection with search
 │   │   ├── profile/                   # User profile screens
 │   │   │   ├── profile_screen.dart    # Profile overview with drawer + bottom nav
 │   │   │   └── profile_detail_screen.dart # Profile editing
@@ -88,9 +90,10 @@ meypato/
 │   │       └── settings_screen.dart   # App preferences
 │   ├── services/                      # Business logic and API services
 │   │   ├── auth_service.dart          # Email/password authentication
+│   │   ├── city_service.dart          # City/location database operations
 │   │   ├── google_auth_service.dart   # Google Sign-In integration
 │   │   ├── profile_service.dart       # Profile CRUD operations
-│   │   └── room_service.dart          # Room/rental data operations
+│   │   └── room_service.dart          # Room/rental data operations with search filters
 │   ├── providers/                     # State management providers
 │   │   └── profile_provider.dart      # Profile state with Provider
 │   ├── themes/                        # App theming and styling
@@ -99,6 +102,8 @@ meypato/
 │   ├── widgets/                       # Reusable UI components
 │   │   ├── app_drawer.dart            # Beautiful drawer navigation with profile integration
 │   │   ├── bottom_navigation.dart     # Compact floating bottom navigation with routing
+│   │   ├── location_section.dart      # Database-connected user location display with city picker
+│   │   ├── search_section.dart        # Dynamic search form with real room types, occupancy, and price data
 │   │   ├── rent_item_card.dart        # Horizontal room card with photo and details
 │   │   └── theme_toggle_button.dart   # Theme switching widgets
 │   └── main.dart                      # App entry point
@@ -276,8 +281,28 @@ body: SafeArea(  // This conflicts with extendBody: true
 - **Theme Integration**: Complete light/dark mode support with proper color schemes
 - **Compact Components**: Optimized spacing and text sizes for better readability
 - **Background Integration**: Immersive background image with transparent app bar
-- **Search Functionality**: Room type, city selection, and price range slider
-- **Location Services**: Current city display with easy change functionality
+- **Modular Architecture**: Separated LocationSection and SearchSection widgets
+- **Database Integration**: Real-time data from Supabase for all search components
+
+### **Advanced Search System**
+- **Dynamic Room Types**: Fetches actual room types from database (Single, Double, Triple, etc.)
+- **Smart Occupancy Filter**: Real occupancy ranges based on `maximum_occupancy` field (1 Person, 2 People, 3 People, 4+ People)
+- **Dynamic Price Range**: Min/max values from actual room inventory with ₹500 step divisions
+- **Location Integration**: User's current city from `profiles.city_id` with database-connected city picker
+- **Performance Optimization**: Indexed database queries for fast search option loading
+- **Loading States**: Smooth loading indicators while fetching search options from Supabase
+- **Error Handling**: Graceful fallbacks if database queries fail
+
+### **Database Service Layer**
+- **CityService**: Complete city management with Arunachal Pradesh focus
+  - `getArunachalCities()`: Fetches all AP cities for location picker
+  - `getCityName(cityId)`: Resolves city names for display
+  - `updateUserCity(cityId)`: Updates user profile location
+- **Enhanced RoomService**: Advanced room filtering and search capabilities
+  - `getAvailableRoomTypes()`: Dynamic room type dropdown population
+  - `getAvailableOccupancyRanges()`: Smart occupancy filtering based on real data
+  - `getAvailablePriceRange()`: Min/max pricing from actual inventory
+  - All methods filter by `availability_status = 'available'` for accurate results
 
 ### **Enhanced Bottom Navigation**
 - **Dark Mode Optimization**: Improved visibility with better color contrast
@@ -332,6 +357,10 @@ flutter build ios --release    # iOS release
 - **Layout Optimization**: Fixed SafeArea cutout issues for floating navigation screens
 - **Data Layer**: Working Supabase nested queries for building/city information
 - **Homepage Design**: Complete modern homepage with unified search interface
+- **Location System**: Database-connected user location with full-page city picker
+- **Advanced Search**: Dynamic search form with real room types, occupancy, and price data
+- **Widget Architecture**: Modular LocationSection and SearchSection components
+- **Database Integration**: Real-time data fetching for all search parameters
 - **Theme-Aware Components**: Full light/dark mode support across all UI elements
 - **Enhanced Navigation**: Improved bottom navigation visibility and theming
 

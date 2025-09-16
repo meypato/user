@@ -14,6 +14,7 @@ import '../screens/building/building_screen.dart';
 import '../screens/building/building_detail_screen.dart';
 import '../screens/building/building_room_detail_screen.dart';
 import '../screens/favorites/favorites_screen.dart';
+import '../screens/location/location_picker_screen.dart';
 import '../services/auth_service.dart';
 
 class AppRouter {
@@ -115,6 +116,14 @@ class AppRouter {
         name: 'favorites',
         builder: (context, state) => const FavoritesScreen(),
       ),
+      GoRoute(
+        path: '/location-picker',
+        name: 'location-picker',
+        builder: (context, state) {
+          final selectedCityId = state.uri.queryParameters['selectedCityId'];
+          return LocationPickerScreen(selectedCityId: selectedCityId);
+        },
+      ),
     ],
   );
 }
@@ -148,6 +157,7 @@ class RouteNames {
   static const String buildingDetail = 'building-detail';
   static const String buildingRoomDetail = 'building-room-detail';
   static const String favorites = 'favorites';
+  static const String locationPicker = 'location-picker';
 }
 
 // Route paths for easy reference
@@ -164,4 +174,5 @@ class RoutePaths {
   static const String buildingDetail = '/building/:buildingId';
   static const String buildingRoomDetail = '/building/:buildingId/room/:roomId';
   static const String favorites = '/favorites';
+  static const String locationPicker = '/location-picker';
 }
