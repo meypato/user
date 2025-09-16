@@ -595,10 +595,16 @@ class RoomService {
 
       final Set<String> uniqueTypes = {};
       for (final room in response) {
-        final roomType = room['room_type'] as String;
-        // Capitalize first letter for display
-        final displayType = roomType[0].toUpperCase() + roomType.substring(1);
-        uniqueTypes.add(displayType);
+        final roomTypeString = room['room_type'] as String;
+        // Convert to enum to get proper display name
+        try {
+          final roomType = RoomType.fromString(roomTypeString);
+          uniqueTypes.add(roomType.displayName);
+        } catch (e) {
+          // Fallback to capitalized string if enum conversion fails
+          final displayType = roomTypeString[0].toUpperCase() + roomTypeString.substring(1);
+          uniqueTypes.add(displayType);
+        }
       }
 
       final List<String> sortedTypes = ['Any', ...uniqueTypes];

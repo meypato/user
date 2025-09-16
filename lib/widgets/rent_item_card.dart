@@ -26,10 +26,10 @@ class RentItemCard extends StatelessWidget {
       margin: EdgeInsets.only(
         left: 16,
         right: 16,
-        top: isFirst ? 20 : 16,
-        bottom: 16,
+        top: isFirst ? 16 : 8,
+        bottom: 8,
       ),
-      height: 140, // Optimized compact height
+      height: 120, // More compact height
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -43,7 +43,7 @@ class RentItemCard extends StatelessWidget {
                 : Colors.grey.shade50,
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: isDark
@@ -75,7 +75,7 @@ class RentItemCard extends StatelessWidget {
           onTap: onTap ?? () {
             context.go('/rent/${room.id}');
           },
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(12),
           child: Row(
             children: [
               // Left side - Image with price overlay (50% of width)
@@ -123,12 +123,12 @@ class RentItemCard extends StatelessWidget {
         // Large image taking full space
         ClipRRect(
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            bottomLeft: Radius.circular(20),
+            topLeft: Radius.circular(12),
+            bottomLeft: Radius.circular(12),
           ),
           child: SizedBox(
             width: double.infinity,
-            height: 140,
+            height: 120,
             child: room.hasPhotos
                 ? Image.network(
                     room.photos.first,
@@ -147,10 +147,10 @@ class RentItemCard extends StatelessWidget {
           left: 0,
           right: 0,
           child: Container(
-            height: 60,
+            height: 50,
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(20),
+                bottomLeft: Radius.circular(12),
               ),
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
@@ -400,7 +400,7 @@ class RentItemCard extends StatelessWidget {
   Widget _buildImagePlaceholder() {
     return Container(
       width: double.infinity,
-      height: 140,
+      height: 120,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,

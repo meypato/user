@@ -133,8 +133,8 @@ enum BuildingType {
 enum RoomType {
   single,
   double,
-  shared,
-  private;
+  triple,
+  studio;
 
   String get displayName {
     switch (this) {
@@ -142,16 +142,16 @@ enum RoomType {
         return 'Single';
       case RoomType.double:
         return 'Double';
-      case RoomType.shared:
-        return 'Shared';
-      case RoomType.private:
-        return 'Private';
+      case RoomType.triple:
+        return 'Triple';
+      case RoomType.studio:
+        return 'Studio';
     }
   }
 
   static RoomType fromString(String value) {
     return RoomType.values.firstWhere(
-      (type) => type.name == value.toLowerCase(),
+      (type) => type.name.toLowerCase() == value.toLowerCase(),
       orElse: () => RoomType.single,
     );
   }

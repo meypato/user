@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart' hide State;
+import '../../services/filter_service.dart';
 import '../../services/room_service.dart';
+import '../../services/city_service.dart';
 import '../../themes/app_colour.dart';
 import '../../widgets/bottom_navigation.dart';
 import '../../widgets/rent_item_card.dart';
@@ -17,6 +19,7 @@ class _RentScreenState extends State<RentScreen> {
   List<Room> _rooms = [];
   bool _isLoading = true;
   String? _error;
+  RoomFilterParams _currentFilters = RoomFilterParams();
 
   @override
   void initState() {
@@ -24,18 +27,24 @@ class _RentScreenState extends State<RentScreen> {
     _loadRooms();
   }
 
-  Future<void> _loadRooms() async {
+  Future<void> _loadRooms([RoomFilterParams? filters]) async {
     try {
       setState(() {
         _isLoading = true;
         _error = null;
       });
 
-      final rooms = await RoomService.getAvailableRooms(limit: 50);
-      
+      // Use provided filters or current filters
+      final filtersToUse = filters ?? _currentFilters;
+
+      final rooms = await FilterService.getFilteredRooms(filtersToUse);
+
       setState(() {
         _rooms = rooms;
         _isLoading = false;
+        if (filters != null) {
+          _currentFilters = filters;
+        }
       });
     } catch (e) {
       setState(() {
@@ -261,16 +270,81 @@ class _RentScreenState extends State<RentScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Minimal results count
+        // Results count with filter indicator
         Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 6),
-          child: Text(
-            '${_rooms.length} available',
-            style: TextStyle(
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+          child: Row(
+            children: [
+              Text(
+                '${_rooms.length} available',
+                style: TextStyle(
+                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              if (_hasActiveFilters) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.primaryBlue.withValues(alpha: 0.3),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.filter_alt,
+                        size: 10,
+                        color: AppColors.primaryBlue,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        'Filtered',
+                        style: TextStyle(
+                          color: AppColors.primaryBlue,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const Spacer(),
+              if (_hasActiveFilters) ...[
+                GestureDetector(
+                  onTap: _clearFilters,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.clear,
+                          size: 12,
+                          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Clear',
+                          style: TextStyle(
+                            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
         
@@ -295,7 +369,12 @@ class _RentScreenState extends State<RentScreen> {
   void _showFilterModal(BuildContext context) {
     Navigator.of(context).push(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => _FilterModal(),
+        pageBuilder: (context, animation, secondaryAnimation) => _FilterModal(
+          onApplyFilters: (filters) {
+            Navigator.of(context).pop();
+            _loadRooms(filters);
+          },
+        ),
         transitionDuration: const Duration(milliseconds: 300),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return SlideTransition(
@@ -310,18 +389,130 @@ class _RentScreenState extends State<RentScreen> {
       ),
     );
   }
+
+  bool get _hasActiveFilters {
+    return _currentFilters.cityId != 'any' ||
+           _currentFilters.roomType != 'any' ||
+           _currentFilters.maxPrice != null ||
+           _currentFilters.maxOccupancy != null ||
+           _currentFilters.buildingType != 'any' ||
+           _currentFilters.amenityIds.isNotEmpty;
+  }
+
+  void _clearFilters() {
+    final clearedFilters = RoomFilterParams();
+    _loadRooms(clearedFilters);
+  }
 }
 
 class _FilterModal extends StatefulWidget {
+  final Function(RoomFilterParams) onApplyFilters;
+
+  const _FilterModal({required this.onApplyFilters});
+
   @override
   _FilterModalState createState() => _FilterModalState();
 }
 
 class _FilterModalState extends State<_FilterModal> {
-  double _priceRange = 5000;
+  // Filter data - using same pattern as SearchSection
+  List<String> _roomTypes = ['Any'];
+  List<String> _cities = ['Any'];
+  List<String> _occupancyRanges = ['Any'];
+  List<City> _cityModels = []; // Store full city objects for ID mapping
+
+  double _minPrice = 2000;
+  double _maxPrice = 30000;
+
+  // Selected values
   String _selectedRoomType = 'Any';
   String _selectedCity = 'Any';
-  int _maxOccupancy = 1;
+  int _selectedOccupancy = 1; // Default to 1
+  double _currentPriceRange = 5000;
+
+  // Loading states
+  bool _isLoadingFilters = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFilterOptions();
+  }
+
+  Future<void> _loadFilterOptions() async {
+    try {
+      setState(() {
+        _isLoadingFilters = true;
+        _error = null;
+      });
+
+      // Load all filter data in parallel
+      final results = await Future.wait([
+        RoomService.getAvailableRoomTypes(),
+        RoomService.getAvailableOccupancyRanges(),
+        RoomService.getAvailablePriceRange(),
+        CityService.getArunachalCities(),
+      ]);
+
+      final roomTypes = results[0] as List<String>;
+      final occupancyRanges = results[1] as List<String>;
+      final priceRange = results[2] as Map<String, double>;
+      final cityModels = results[3] as List<City>;
+
+      // If no room types are available from database, show all enum types
+      final finalRoomTypes = roomTypes.length <= 1
+          ? ['Any', 'Single', 'Double', 'Shared', 'Private']
+          : roomTypes;
+
+      // Convert City models to string list with "Any" at the beginning
+      final cities = ['Any', ...cityModels.map((city) => city.name)];
+
+      setState(() {
+        _roomTypes = finalRoomTypes;
+        _occupancyRanges = occupancyRanges;
+        _cities = cities;
+        _cityModels = cityModels; // Store full city objects
+        _minPrice = priceRange['min']!;
+        _maxPrice = priceRange['max']!;
+        _currentPriceRange = (_minPrice + _maxPrice) / 2; // Set to middle of range
+        _isLoadingFilters = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoadingFilters = false;
+      });
+    }
+  }
+
+  void _resetFilters() {
+    setState(() {
+      _selectedRoomType = 'Any';
+      _selectedCity = 'Any';
+      _selectedOccupancy = 1;
+      _currentPriceRange = (_minPrice + _maxPrice) / 2;
+    });
+  }
+
+  void _applyFilters() {
+    // Find the city ID if a specific city is selected
+    String cityId = 'any';
+    if (_selectedCity.toLowerCase() != 'any') {
+      final selectedCityModel = _cityModels.where((city) => city.name == _selectedCity).firstOrNull;
+      if (selectedCityModel != null) {
+        cityId = selectedCityModel.id;
+      }
+    }
+
+    final filters = RoomFilterParams(
+      roomType: _selectedRoomType.toLowerCase() == 'any' ? 'any' : _selectedRoomType.toLowerCase(),
+      cityId: cityId,
+      maxPrice: _currentPriceRange,
+      maxOccupancy: _selectedOccupancy > 1 ? _selectedOccupancy : null,
+    );
+    widget.onApplyFilters(filters);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -374,14 +565,7 @@ class _FilterModalState extends State<_FilterModal> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _priceRange = 5000;
-                        _selectedRoomType = 'Any';
-                        _selectedCity = 'Any';
-                        _maxOccupancy = 1;
-                      });
-                    },
+                    onPressed: _resetFilters,
                     child: Text(
                       'Reset',
                       style: TextStyle(
@@ -396,11 +580,15 @@ class _FilterModalState extends State<_FilterModal> {
 
             // Filter Options
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              child: _isLoadingFilters
+                  ? _buildLoadingState(theme)
+                  : _error != null
+                      ? _buildErrorState(theme)
+                      : SingleChildScrollView(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                     // Price Range
                     _buildFilterSection(
                       'Price Range',
@@ -411,7 +599,7 @@ class _FilterModalState extends State<_FilterModal> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Up to ₹${_priceRange.toInt()}',
+                                'Up to ₹${_currentPriceRange.toInt()}',
                                 style: TextStyle(
                                   color: AppColors.primaryBlue,
                                   fontSize: 16,
@@ -435,11 +623,11 @@ class _FilterModalState extends State<_FilterModal> {
                               overlayColor: AppColors.primaryBlue.withValues(alpha: 0.1),
                             ),
                             child: Slider(
-                              value: _priceRange,
-                              min: 1000,
-                              max: 25000,
-                              divisions: 24,
-                              onChanged: (value) => setState(() => _priceRange = value),
+                              value: _currentPriceRange,
+                              min: _minPrice,
+                              max: _maxPrice,
+                              divisions: ((_maxPrice - _minPrice) / 500).round(),
+                              onChanged: (value) => setState(() => _currentPriceRange = value),
                             ),
                           ),
                         ],
@@ -455,11 +643,13 @@ class _FilterModalState extends State<_FilterModal> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: ['Any', 'Single', 'Double', 'Shared', 'Studio'].map(
-                          (type) => _buildChip(type, _selectedRoomType == type, () {
-                            setState(() => _selectedRoomType = type);
-                          }, theme),
-                        ).toList(),
+                        children: _isLoadingFilters
+                            ? [_buildLoadingChip(theme)]
+                            : _roomTypes.map(
+                                (type) => _buildChip(type, _selectedRoomType == type, () {
+                                  setState(() => _selectedRoomType = type);
+                                }, theme),
+                              ).toList(),
                       ),
                       theme,
                     ),
@@ -472,88 +662,40 @@ class _FilterModalState extends State<_FilterModal> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: ['Any', 'Itanagar', 'Naharlagun', 'Pasighat', 'Tawang'].map(
-                          (city) => _buildChip(city, _selectedCity == city, () {
-                            setState(() => _selectedCity = city);
-                          }, theme),
-                        ).toList(),
+                        children: _isLoadingFilters
+                            ? [_buildLoadingChip(theme)]
+                            : _cities.map(
+                                (city) => _buildChip(city, _selectedCity == city, () {
+                                  setState(() => _selectedCity = city);
+                                }, theme),
+                              ).toList(),
                       ),
                       theme,
                     ),
 
                     const SizedBox(height: 24),
 
-                    // Max Occupancy
+                    // Occupancy
                     _buildFilterSection(
-                      'Max Occupancy',
-                      Row(
-                        children: [
-                          Text(
-                            '$_maxOccupancy',
-                            style: TextStyle(
-                              color: AppColors.primaryBlue,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Text(
-                            _maxOccupancy == 1 ? ' person' : ' people',
-                            style: TextStyle(
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const Spacer(),
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  if (_maxOccupancy > 1) {
-                                    setState(() => _maxOccupancy--);
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Icon(
-                                    Icons.remove,
-                                    color: theme.colorScheme.primary,
-                                    size: 16,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              GestureDetector(
-                                onTap: () {
-                                  if (_maxOccupancy < 6) {
-                                    setState(() => _maxOccupancy++);
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Icon(
-                                    Icons.add,
-                                    color: theme.colorScheme.primary,
-                                    size: 16,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      'Occupancy',
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _isLoadingFilters
+                            ? [_buildLoadingChip(theme)]
+                            : _occupancyRanges.map(
+                                (occupancy) => _buildChip(occupancy, _selectedOccupancy.toString() == occupancy.replaceAll(RegExp(r'[^0-9]'), ''), () {
+                                  final occupancyNumber = int.tryParse(occupancy.replaceAll(RegExp(r'[^0-9]'), '')) ?? 1;
+                                  setState(() => _selectedOccupancy = occupancyNumber);
+                                }, theme),
+                              ).toList(),
                       ),
                       theme,
                     ),
-                  ],
-                ),
-              ),
+
+                            ],
+                          ),
+                        ),
             ),
 
             // Apply Button
@@ -572,10 +714,7 @@ class _FilterModalState extends State<_FilterModal> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    // TODO: Apply filters
-                  },
+                  onPressed: _applyFilters,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryBlue,
                     foregroundColor: Colors.white,
@@ -662,6 +801,106 @@ class _FilterModalState extends State<_FilterModal> {
             fontSize: 14,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: AppColors.primaryBlue),
+          const SizedBox(height: 16),
+          Text(
+            'Loading filter options...',
+            style: TextStyle(
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: AppColors.error.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Failed to load filters',
+            style: TextStyle(
+              color: theme.textTheme.bodyLarge?.color,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Please try again',
+            style: TextStyle(
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _loadFilterOptions,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingChip(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.primaryBlue.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.primaryBlue,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Loading...',
+            style: TextStyle(
+              color: AppColors.primaryBlue,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+        ],
       ),
     );
   }
