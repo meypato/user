@@ -284,7 +284,7 @@ class _SearchSectionState extends State<SearchSection> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: ElevatedButton(
-        onPressed: () => context.go('/rent'),
+        onPressed: _performSearch,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
@@ -310,6 +310,30 @@ class _SearchSectionState extends State<SearchSection> {
         ),
       ),
     );
+  }
+
+  void _performSearch() {
+    // Build query parameters for search filters
+    final Map<String, String> queryParams = {};
+
+    // Only add non-default values to keep URL clean
+    if (_selectedRoomType != 'Any') {
+      queryParams['roomType'] = _selectedRoomType;
+    }
+
+    if (_selectedOccupancy != 'Any') {
+      queryParams['occupancy'] = _selectedOccupancy;
+    }
+
+    // Always pass price if it's not the default middle value
+    final defaultPrice = (_minPrice + _maxPrice) / 2;
+    if (_priceRange != defaultPrice) {
+      queryParams['maxPrice'] = _priceRange.toInt().toString();
+    }
+
+    // Navigate to rent screen with search parameters
+    final uri = Uri(path: '/rent', queryParameters: queryParams.isNotEmpty ? queryParams : null);
+    context.go(uri.toString());
   }
 
   Widget _buildLoadingState(bool isDark) {

@@ -8,7 +8,9 @@ import '../../widgets/app_drawer.dart';
 import '../../widgets/filter_modal.dart';
 
 class RentScreen extends StatefulWidget {
-  const RentScreen({super.key});
+  final Map<String, String>? searchParams;
+
+  const RentScreen({super.key, this.searchParams});
 
   @override
   State<RentScreen> createState() => _RentScreenState();
@@ -23,7 +25,37 @@ class _RentScreenState extends State<RentScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeFiltersFromSearchParams();
     _loadRooms();
+  }
+
+  void _initializeFiltersFromSearchParams() {
+    if (widget.searchParams != null && widget.searchParams!.isNotEmpty) {
+      // Convert search parameters to RoomFilterParams
+      final params = widget.searchParams!;
+
+      final searchFilters = RoomFilterParams(
+        roomType: params['roomType'] ?? 'any',
+        maxOccupancy: params['occupancy'] != null
+            ? _parseOccupancyFromString(params['occupancy']!)
+            : null,
+        maxPrice: params['maxPrice'] != null
+            ? double.tryParse(params['maxPrice']!)
+            : null,
+      );
+
+      _currentFilters = searchFilters;
+    }
+  }
+
+  int? _parseOccupancyFromString(String occupancyString) {
+    // Convert display strings back to numbers
+    // e.g., "1 Person" -> 1, "2 People" -> 2, "4+ People" -> 4
+    if (occupancyString.contains('1 Person')) return 1;
+    if (occupancyString.contains('2 People')) return 2;
+    if (occupancyString.contains('3 People')) return 3;
+    if (occupancyString.contains('4')) return 4;
+    return null;
   }
 
   Future<void> _loadRooms([RoomFilterParams? filters]) async {

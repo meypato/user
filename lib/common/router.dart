@@ -70,7 +70,13 @@ class AppRouter {
       GoRoute(
         path: '/rent',
         name: 'rent',
-        builder: (context, state) => const RentScreen(),
+        builder: (context, state) {
+          // Extract query parameters for search filters
+          final searchParams = state.uri.queryParameters.isNotEmpty
+              ? state.uri.queryParameters
+              : null;
+          return RentScreen(searchParams: searchParams);
+        },
         routes: [
           GoRoute(
             path: ':rentId',

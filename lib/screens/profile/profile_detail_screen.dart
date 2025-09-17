@@ -183,10 +183,36 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                     color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
                     borderRadius: BorderRadius.circular(37),
                   ),
-                  child: const Icon(
-                    Icons.person,
-                    size: 40,
-                    color: AppColors.primaryBlue,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(37),
+                    child: profileProvider.profile?.photoUrl != null
+                        ? Image.network(
+                            profileProvider.profile!.photoUrl!,
+                            fit: BoxFit.cover,
+                            width: 74,
+                            height: 74,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primaryBlue,
+                                  strokeWidth: 2,
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.person,
+                                size: 40,
+                                color: AppColors.primaryBlue,
+                              );
+                            },
+                          )
+                        : const Icon(
+                            Icons.person,
+                            size: 40,
+                            color: AppColors.primaryBlue,
+                          ),
                   ),
                 ),
               ),
