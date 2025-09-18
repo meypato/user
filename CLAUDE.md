@@ -90,7 +90,9 @@ meypato/
 │   │       └── settings_screen.dart   # App preferences
 │   ├── services/                      # Business logic and API services
 │   │   ├── auth_service.dart          # Email/password authentication
+│   │   ├── building_filter_service.dart # Building filtering and search operations
 │   │   ├── city_service.dart          # City/location database operations
+│   │   ├── filter_service.dart        # Room filtering and search operations
 │   │   ├── google_auth_service.dart   # Google Sign-In integration
 │   │   ├── profile_service.dart       # Profile CRUD operations
 │   │   └── room_service.dart          # Room/rental data operations with search filters
@@ -102,10 +104,12 @@ meypato/
 │   ├── widgets/                       # Reusable UI components
 │   │   ├── app_drawer.dart            # Beautiful drawer navigation with profile integration
 │   │   ├── bottom_navigation.dart     # Compact floating bottom navigation with routing
+│   │   ├── building_filter_modal.dart # Building filter system with location and type filtering
+│   │   ├── building_item_card.dart    # Building card with photo and property details
+│   │   ├── filter_modal.dart          # Room filter system with beautiful gradient design
 │   │   ├── location_section.dart      # Database-connected user location display with city picker
-│   │   ├── search_section.dart        # Dynamic search form with real room types, occupancy, and price data
-│   │   ├── filter_modal.dart          # Modular filter system with beautiful gradient design
 │   │   ├── rent_item_card.dart        # Horizontal room card with photo and details
+│   │   ├── search_section.dart        # Dynamic search form with real room types, occupancy, and price data
 │   │   └── theme_toggle_button.dart   # Theme switching widgets
 │   └── main.dart                      # App entry point
 ├── assets/                            # Static assets
@@ -375,7 +379,7 @@ flutter build ios --release    # iOS release
 - **Data Models**: 10 models matching database schema (including RoomDetail)
 - **Core Screens**: Login, Register, Home, Rooms (formerly Rent), Building, Favorites, Profile, Settings
 - **Room Detail Screen**: Complete room detail view with photo gallery, amenities, owner info
-- **Building Screen**: Coming soon placeholder with feature preview
+- **Building Screen**: Complete building listings with grid layout, search, and advanced filtering
 - **Favorites Screen**: Mock implementation with empty state and feature preview
 - **Navigation Architecture**: Nested GoRouter structure with proper parent-child relationships
 - **Modern UI Design**: Blue floating navigation, horizontal room cards, immersive photo headers
@@ -391,12 +395,15 @@ flutter build ios --release    # iOS release
 - **Enhanced Navigation**: Improved bottom navigation visibility and theming
 - **Room Type System**: Complete RoomType enum (Single, Double, Triple, Studio) with proper display consistency across all UI components
 - **Search Integration**: Complete homepage to rent screen parameter passing with query string navigation
-- **Filter Modal System**: Beautiful, modular filter system with gradient designs and enhanced UX
+- **Room Filter System**: Beautiful, modular filter system with gradient designs and enhanced UX for room filtering
+- **Building Filter System**: Complete building filtering with location, type, and distance-based filtering
+- **BuildingFilterService**: Advanced database service for building type, city, and proximity filtering
+- **Building Filter Modal**: Gradient-designed filter modal with location sections and building type selection
 - **Profile Screen Enhancement**: Compact, beautiful profile design with 2x2 grid layout and gradient cards
 - **Profile Photo Display**: Fixed profile photo rendering in detail screen with proper loading states
 
 ### ⏳ Next Steps
-1. **Property Search**: Building/room browsing with APST filtering
+1. **APST Compatibility Filtering**: Implement tribal and professional access control for buildings and rooms
 2. **Favorites Functionality**: Actual save/remove favorites with data persistence
 3. **Subscription System**: Rental agreements and payments
 4. **Reviews**: Rating system for buildings

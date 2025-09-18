@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart' hide State;
-import '../../services/building_service.dart';
+import '../../services/building_filter_service.dart';
 import '../../themes/app_colour.dart';
 import '../../widgets/bottom_navigation.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/building_item_card.dart';
+import '../../widgets/building_filter_modal.dart';
 
 class BuildingScreen extends StatefulWidget {
   const BuildingScreen({super.key});
@@ -17,6 +18,7 @@ class _BuildingScreenState extends State<BuildingScreen> {
   List<Building> _buildings = [];
   bool _isLoading = true;
   String? _error;
+  BuildingFilterParams _currentFilters = BuildingFilterParams();
 
   @override
   void initState() {
@@ -24,19 +26,25 @@ class _BuildingScreenState extends State<BuildingScreen> {
     _loadBuildings();
   }
 
-  Future<void> _loadBuildings() async {
+  Future<void> _loadBuildings([BuildingFilterParams? filters]) async {
     try {
       setState(() {
         _isLoading = true;
         _error = null;
       });
 
-      // Load buildings from BuildingService
-      final buildings = await BuildingService.getAvailableBuildings(limit: 50);
+      // Use provided filters or current filters
+      final filtersToUse = filters ?? _currentFilters;
+
+      // Load buildings from BuildingFilterService
+      final buildings = await BuildingFilterService.getFilteredBuildings(filtersToUse);
 
       setState(() {
         _buildings = buildings;
         _isLoading = false;
+        if (filters != null) {
+          _currentFilters = filters;
+        }
       });
     } catch (e) {
       setState(() {
@@ -261,16 +269,81 @@ class _BuildingScreenState extends State<BuildingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Results count
+        // Results count with filter indicator
         Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 6),
-          child: Text(
-            '${_buildings.length} available',
-            style: TextStyle(
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+          child: Row(
+            children: [
+              Text(
+                '${_buildings.length} available',
+                style: TextStyle(
+                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              if (_hasActiveFilters) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.primaryBlue.withValues(alpha: 0.3),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.filter_alt,
+                        size: 10,
+                        color: AppColors.primaryBlue,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        'Filtered',
+                        style: TextStyle(
+                          color: AppColors.primaryBlue,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const Spacer(),
+              if (_hasActiveFilters) ...[
+                GestureDetector(
+                  onTap: _clearFilters,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.clear,
+                          size: 12,
+                          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Clear',
+                          style: TextStyle(
+                            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
 
@@ -296,10 +369,27 @@ class _BuildingScreenState extends State<BuildingScreen> {
     );
   }
 
+  bool get _hasActiveFilters {
+    return _currentFilters.cityId != 'any' ||
+           _currentFilters.buildingType != 'any' ||
+           _currentFilters.maxDistance != null ||
+           _currentFilters.pincode != 'any';
+  }
+
+  void _clearFilters() {
+    final clearedFilters = BuildingFilterParams();
+    _loadBuildings(clearedFilters);
+  }
+
   void _showFilterModal(BuildContext context) {
     Navigator.of(context).push(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => _FilterModal(),
+        pageBuilder: (context, animation, secondaryAnimation) => BuildingFilterModal(
+          onApplyFilters: (filters) {
+            Navigator.of(context).pop();
+            _loadBuildings(filters);
+          },
+        ),
         transitionDuration: const Duration(milliseconds: 300),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return SlideTransition(
@@ -316,284 +406,3 @@ class _BuildingScreenState extends State<BuildingScreen> {
   }
 }
 
-class _FilterModal extends StatefulWidget {
-  @override
-  _FilterModalState createState() => _FilterModalState();
-}
-
-class _FilterModalState extends State<_FilterModal> {
-  String _selectedBuildingType = 'Any';
-  String _selectedCity = 'Any';
-  double _maxDistance = 10.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                border: Border(
-                  bottom: BorderSide(
-                    color: theme.dividerColor.withValues(alpha: 0.1),
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.close,
-                        color: theme.colorScheme.primary,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      'Filter Buildings',
-                      style: TextStyle(
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _selectedBuildingType = 'Any';
-                        _selectedCity = 'Any';
-                        _maxDistance = 10.0;
-                      });
-                    },
-                    child: Text(
-                      'Reset',
-                      style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Filter Options
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Building Type
-                    _buildFilterSection(
-                      'Building Type',
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: ['Any', 'Apartment', 'PG', 'House', 'Hostel'].map(
-                          (type) => _buildChip(type, _selectedBuildingType == type, () {
-                            setState(() => _selectedBuildingType = type);
-                          }, theme),
-                        ).toList(),
-                      ),
-                      theme,
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // City
-                    _buildFilterSection(
-                      'City',
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: ['Any', 'Itanagar', 'Naharlagun', 'Pasighat', 'Tawang'].map(
-                          (city) => _buildChip(city, _selectedCity == city, () {
-                            setState(() => _selectedCity = city);
-                          }, theme),
-                        ).toList(),
-                      ),
-                      theme,
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Distance
-                    _buildFilterSection(
-                      'Distance',
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Within ${_maxDistance.toInt()} km',
-                                style: TextStyle(
-                                  color: AppColors.primaryBlue,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                'from your location',
-                                style: TextStyle(
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: AppColors.primaryBlue,
-                              thumbColor: AppColors.primaryBlue,
-                              overlayColor: AppColors.primaryBlue.withValues(alpha: 0.1),
-                            ),
-                            child: Slider(
-                              value: _maxDistance,
-                              min: 1.0,
-                              max: 50.0,
-                              divisions: 49,
-                              onChanged: (value) => setState(() => _maxDistance = value),
-                            ),
-                          ),
-                        ],
-                      ),
-                      theme,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Apply Button
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                border: Border(
-                  top: BorderSide(
-                    color: theme.dividerColor.withValues(alpha: 0.1),
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    // TODO: Apply filters
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Apply Filters',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterSection(String title, Widget content, ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.1)
-                : AppColors.primaryBlue.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 12),
-          content,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChip(String label, bool isSelected, VoidCallback onTap, ThemeData theme) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primaryBlue
-              : theme.colorScheme.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primaryBlue
-                : AppColors.primaryBlue.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected
-                ? Colors.white
-                : AppColors.primaryBlue,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-        ),
-      ),
-    );
-  }
-}
