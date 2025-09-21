@@ -42,4 +42,4 @@ create index IF not exists buildings_is_active_idx on public.buildings using btr
 create index IF not exists buildings_state_city_idx on public.buildings using btree (state_id, city_id) TABLESPACE pg_default;
 
 create trigger trigger_generate_building_id BEFORE INSERT on buildings for EACH row when (new.building_id is null)
-execute FUNCTION generate_building_id ();
+execute FUNCTION generate_building_id (); 

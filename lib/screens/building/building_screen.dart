@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../models/models.dart' hide State;
 import '../../services/building_filter_service.dart';
+import '../../services/location_service.dart';
 import '../../themes/app_colour.dart';
 import '../../widgets/bottom_navigation.dart';
 import '../../widgets/app_drawer.dart';
@@ -19,6 +21,11 @@ class _BuildingScreenState extends State<BuildingScreen> {
   bool _isLoading = true;
   String? _error;
   BuildingFilterParams _currentFilters = BuildingFilterParams();
+
+  // Nearby functionality state
+  bool _isNearbyMode = false;
+  bool _isGettingLocation = false;
+  Position? _userPosition;
 
   @override
   void initState() {
@@ -79,6 +86,10 @@ class _BuildingScreenState extends State<BuildingScreen> {
               ? AppColors.textPrimaryDark
               : AppColors.textPrimary,
         ),
+        actions: [
+          _buildNearbyButton(theme),
+          const SizedBox(width: 16),
+        ],
       ),
       body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,14 +286,48 @@ class _BuildingScreenState extends State<BuildingScreen> {
           child: Row(
             children: [
               Text(
-                '${_buildings.length} available',
+                _isNearbyMode
+                    ? '${_buildings.length} nearby buildings'
+                    : '${_buildings.length} available',
                 style: TextStyle(
                   color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              if (_hasActiveFilters) ...[
+              if (_isNearbyMode) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.success.withValues(alpha: 0.3),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.near_me,
+                        size: 10,
+                        color: AppColors.success,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        'Nearby Mode',
+                        style: TextStyle(
+                          color: AppColors.success,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ] else if (_hasActiveFilters) ...[
                 const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -359,8 +404,12 @@ class _BuildingScreenState extends State<BuildingScreen> {
             ),
             itemCount: _buildings.length,
             itemBuilder: (context, index) {
+              final building = _buildings[index];
+              final distance = _getBuildingDistance(building);
+
               return BuildingItemCard(
-                building: _buildings[index],
+                building: building,
+                distance: distance,
               );
             },
           ),
@@ -402,6 +451,208 @@ class _BuildingScreenState extends State<BuildingScreen> {
         },
         fullscreenDialog: true,
       ),
+    );
+  }
+
+  /// Build the nearby toggle button for the app bar
+  Widget _buildNearbyButton(ThemeData theme) {
+    return GestureDetector(
+      onTap: _isGettingLocation ? null : _toggleNearbyMode,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: _isNearbyMode
+              ? AppColors.primaryBlue
+              : theme.colorScheme.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _isNearbyMode
+                ? AppColors.primaryBlue
+                : AppColors.primaryBlue.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_isGettingLocation) ...[
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: _isNearbyMode ? Colors.white : AppColors.primaryBlue,
+                ),
+              ),
+              const SizedBox(width: 6),
+            ] else ...[
+              Icon(
+                _isNearbyMode ? Icons.near_me : Icons.near_me_outlined,
+                color: _isNearbyMode ? Colors.white : AppColors.primaryBlue,
+                size: 16,
+              ),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              _isGettingLocation
+                  ? 'Getting Location...'
+                  : _isNearbyMode
+                      ? 'Nearby'
+                      : 'Nearby',
+              style: TextStyle(
+                color: _isNearbyMode ? Colors.white : AppColors.primaryBlue,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Toggle nearby mode on/off
+  Future<void> _toggleNearbyMode() async {
+    if (_isNearbyMode) {
+      // Turn off nearby mode
+      setState(() {
+        _isNearbyMode = false;
+        _userPosition = null;
+      });
+      // Reload regular buildings
+      await _loadBuildings();
+    } else {
+      // Turn on nearby mode
+      await _enableNearbyMode();
+    }
+  }
+
+  /// Enable nearby mode by getting user location
+  Future<void> _enableNearbyMode() async {
+    setState(() {
+      _isGettingLocation = true;
+    });
+
+    try {
+      // Check if location services are enabled
+      if (!await LocationService.isLocationServiceEnabled()) {
+        throw Exception('Location services are disabled. Please enable location services in your device settings.');
+      }
+
+      // Get current position
+      final position = await LocationService.getCurrentPosition(
+        accuracy: LocationAccuracy.high,
+      );
+
+      if (position != null) {
+        setState(() {
+          _userPosition = position;
+          _isNearbyMode = true;
+          _isGettingLocation = false;
+        });
+
+        // Load nearby buildings
+        await _loadNearbyBuildings();
+      } else {
+        throw Exception('Could not get your location. Please check your location permissions.');
+      }
+    } catch (e) {
+      setState(() {
+        _isGettingLocation = false;
+      });
+
+      // Show error dialog
+      if (mounted) {
+        _showLocationErrorDialog(e.toString());
+      }
+    }
+  }
+
+  /// Load nearby buildings sorted by distance
+  Future<void> _loadNearbyBuildings() async {
+    if (_userPosition == null) return;
+
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      // Get nearby buildings with distance
+      final nearbyBuildings = await BuildingFilterService.getNearbyBuildings(
+        userLatitude: _userPosition!.latitude,
+        userLongitude: _userPosition!.longitude,
+        maxDistance: 50.0, // 50km max range
+        cityId: _currentFilters.cityId != 'any' ? _currentFilters.cityId : null,
+        buildingType: _currentFilters.buildingType != 'any' ? _currentFilters.buildingType : null,
+      );
+
+      setState(() {
+        _buildings = nearbyBuildings.map((bwd) => bwd.building).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  /// Show location error dialog with helpful actions
+  void _showLocationErrorDialog(String error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Location Access Required'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(error),
+            const SizedBox(height: 16),
+            const Text(
+              'To find nearby buildings, we need access to your location. Please:',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            const Text('• Enable location services on your device'),
+            const Text('• Grant location permission to this app'),
+            const Text('• Make sure you have a GPS signal'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await LocationService.openAppSettings();
+            },
+            child: const Text('Open Settings'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _enableNearbyMode();
+            },
+            child: const Text('Try Again'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Get distance for a building (used in UI display)
+  String? _getBuildingDistance(Building building) {
+    if (!_isNearbyMode || _userPosition == null || !building.hasLocation) {
+      return null;
+    }
+    return building.getFormattedDistance(
+      _userPosition!.latitude,
+      _userPosition!.longitude,
     );
   }
 }

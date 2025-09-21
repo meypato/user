@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/models.dart' hide State;
 import '../../services/building_service.dart';
 import '../../themes/app_colour.dart';
 import '../../widgets/compact_room_card.dart';
+import '../../widgets/map_widget.dart';
 
 class BuildingDetailScreen extends StatefulWidget {
   final String buildingId;
@@ -73,6 +75,8 @@ class _BuildingDetailScreenState extends State<BuildingDetailScreen> {
       });
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +149,7 @@ class _BuildingDetailScreenState extends State<BuildingDetailScreen> {
           child: Column(
             children: [
               _buildMainInfo(theme, isDark),
-              _buildLocationSection(theme, isDark),
+              _buildLocationAndMapSection(theme, isDark),
               _buildContactSection(theme, isDark),
               _buildRoomsSection(theme, isDark),
               const SizedBox(height: 40), // Bottom padding
@@ -382,9 +386,23 @@ class _BuildingDetailScreenState extends State<BuildingDetailScreen> {
     );
   }
 
-  Widget _buildLocationSection(ThemeData theme, bool isDark) {
+  /// Build location section (full width)
+  Widget _buildLocationAndMapSection(ThemeData theme, bool isDark) {
+    return Column(
+      children: [
+        // Full width location section
+        _buildLocationInfo(theme, isDark),
+        const SizedBox(height: 16),
+        // Map buttons row below location
+        _buildMapButtonsRow(theme, isDark),
+      ],
+    );
+  }
+
+  /// Build location information section
+  Widget _buildLocationInfo(ThemeData theme, bool isDark) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
@@ -444,6 +462,139 @@ class _BuildingDetailScreenState extends State<BuildingDetailScreen> {
     );
   }
 
+  /// Build map buttons row below location section
+  Widget _buildMapButtonsRow(ThemeData theme, bool isDark) {
+    // Don't show buttons if no Google Maps link available
+    if (_building == null || _building!.googleMapsLink == null || _building!.googleMapsLink!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: Row(
+        children: [
+          // Show Map button
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () => _showMapPopup(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 2,
+              ),
+              icon: const Icon(Icons.map, size: 18),
+              label: const Text(
+                'Show Map',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Open in Google Maps button
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => _openInGoogleMaps(),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.success,
+                side: BorderSide(color: AppColors.success),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: const Icon(Icons.open_in_new, size: 18),
+              label: const Text(
+                'Google Maps',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show map in popup dialog
+  void _showMapPopup() {
+    if (_building?.googleMapsLink == null || _building!.googleMapsLink!.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          backgroundColor: Colors.transparent,
+          child: MapWidget(
+            googleMapsLink: _building!.googleMapsLink,
+            buildingName: _building!.name,
+            showFullscreen: true,
+          ),
+        );
+      },
+    );
+  }
+
+  /// Open Google Maps in external app
+  Future<void> _openInGoogleMaps() async {
+    if (_building?.googleMapsLink == null || _building!.googleMapsLink!.isEmpty) {
+      print('No Google Maps link available');
+      return;
+    }
+
+    final googleMapsLink = _building!.googleMapsLink!;
+    print('Opening Google Maps link: $googleMapsLink');
+
+    try {
+      final uri = Uri.parse(googleMapsLink);
+      print('Parsed URI: $uri');
+
+      final canLaunch = await canLaunchUrl(uri);
+      print('Can launch URL: $canLaunch');
+
+      if (canLaunch) {
+        final launched = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        print('URL launched successfully: $launched');
+      } else {
+        // Try alternative launch modes
+        print('Trying alternative launch mode...');
+        await launchUrl(
+          uri,
+          mode: LaunchMode.platformDefault,
+        );
+      }
+    } catch (e) {
+      print('Error opening Google Maps: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open Google Maps: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            action: SnackBarAction(
+              label: 'Copy Link',
+              textColor: Colors.white,
+              onPressed: () {
+                // TODO: Copy link to clipboard
+                print('Copy link functionality would go here');
+              },
+            ),
+          ),
+        );
+      }
+    }
+  }
 
   Widget _buildContactSection(ThemeData theme, bool isDark) {
     return Container(

@@ -1,4 +1,5 @@
 import 'enums.dart';
+import '../services/location_service.dart';
 
 class Building {
   final String id;
@@ -18,6 +19,7 @@ class Building {
   final String stateId;
   final String cityId;
   final String? rulesFileUrl;
+  final String? googleMapsLink;
   final List<String> photos;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -40,6 +42,7 @@ class Building {
     required this.stateId,
     required this.cityId,
     this.rulesFileUrl,
+    this.googleMapsLink,
     this.photos = const [],
     required this.createdAt,
     required this.updatedAt,
@@ -71,6 +74,7 @@ class Building {
       stateId: json['state_id'] as String,
       cityId: json['city_id'] as String,
       rulesFileUrl: json['rules_file_url'] as String?,
+      googleMapsLink: json['google_maps_link'] as String?,
       photos: photosList,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -96,6 +100,7 @@ class Building {
       'state_id': stateId,
       'city_id': cityId,
       'rules_file_url': rulesFileUrl,
+      'google_maps_link': googleMapsLink,
       'photos': photos,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -118,6 +123,7 @@ class Building {
     String? stateId,
     String? cityId,
     String? rulesFileUrl,
+    String? googleMapsLink,
     List<String>? photos,
     DateTime? updatedAt,
   }) {
@@ -139,6 +145,7 @@ class Building {
       stateId: stateId ?? this.stateId,
       cityId: cityId ?? this.cityId,
       rulesFileUrl: rulesFileUrl ?? this.rulesFileUrl,
+      googleMapsLink: googleMapsLink ?? this.googleMapsLink,
       photos: photos ?? this.photos,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
@@ -160,6 +167,36 @@ class Building {
   bool get hasRules => rulesFileUrl != null;
 
   String get displayId => buildingId ?? id.substring(0, 8);
+
+  /// Calculate distance from this building to given coordinates
+  /// Returns distance in kilometers, or null if building has no location
+  double? distanceTo(double lat, double lon) {
+    if (!hasLocation) return null;
+    return LocationService.calculateDistance(latitude!, longitude!, lat, lon);
+  }
+
+  /// Calculate distance from this building to another building
+  /// Returns distance in kilometers, or null if either building has no location
+  double? distanceToBuilding(Building other) {
+    if (!hasLocation || !other.hasLocation) return null;
+    return LocationService.calculateDistance(
+      latitude!, longitude!, other.latitude!, other.longitude!
+    );
+  }
+
+  /// Check if this building is within a specified radius of given coordinates
+  /// Returns false if building has no location
+  bool isWithinRadius(double lat, double lon, double radiusKm) {
+    final distance = distanceTo(lat, lon);
+    return distance != null && distance <= radiusKm;
+  }
+
+  /// Get formatted distance string for UI display
+  /// Returns null if distance cannot be calculated
+  String? getFormattedDistance(double lat, double lon) {
+    final distance = distanceTo(lat, lon);
+    return distance != null ? LocationService.formatDistance(distance) : null;
+  }
 
   @override
   bool operator ==(Object other) {

@@ -31,6 +31,9 @@ google_sign_in: ^6.3.0       # Google OAuth
 shared_preferences: ^2.5.3   # Local storage
 geolocator: ^14.0.2          # Location services
 image_picker: ^1.2.0         # Photo uploads
+webview_flutter: ^4.13.0     # Interactive web content and Google Maps
+permission_handler: ^12.0.1  # Location permissions management
+url_launcher: ^6.3.2         # External app launching
 ```
 
 ---
@@ -106,8 +109,10 @@ meypato/
 │   │   ├── bottom_navigation.dart     # Compact floating bottom navigation with routing
 │   │   ├── building_filter_modal.dart # Building filter system with location and type filtering
 │   │   ├── building_item_card.dart    # Building card with photo and property details
+│   │   ├── compact_room_card.dart     # Compact room cards for building detail page
 │   │   ├── filter_modal.dart          # Room filter system with beautiful gradient design
 │   │   ├── location_section.dart      # Database-connected user location display with city picker
+│   │   ├── map_widget.dart            # Interactive Google Maps WebView widget with popup functionality
 │   │   ├── rent_item_card.dart        # Horizontal room card with photo and details
 │   │   ├── search_section.dart        # Dynamic search form with real room types, occupancy, and price data
 │   │   └── theme_toggle_button.dart   # Theme switching widgets
@@ -340,6 +345,17 @@ body: SafeArea(  // This conflicts with extendBody: true
 - **Shareable URLs**: Bookmarkable search results with query parameters
 - **Filter Integration**: Works seamlessly with existing filter modal system
 
+### **Interactive Map Integration**
+- **MapWidget Component**: Reusable interactive Google Maps widget with WebView functionality
+- **HTML Iframe Implementation**: Custom HTML with responsive Google Maps embed for optimal compatibility
+- **Coordinate Extraction**: Smart parsing of Google Maps URLs to extract lat/lng coordinates
+- **Popup Dialog System**: Fullscreen map popup (80% screen height) with close and external launch actions
+- **Building Detail Integration**: Clean layout with location section at full width and map buttons below
+- **Dual Action Buttons**: "Show Map" (popup) and "Google Maps" (external app) for flexible user experience
+- **Error Handling**: Comprehensive debugging, fallback launch modes, and user-friendly error messages
+- **Platform Optimization**: Mobile-optimized User-Agent and navigation controls for smooth WebView performance
+- **Loading States**: Progressive loading indicators and graceful fallbacks for missing map data
+
 ---
 
 ## User Flow (Tenants)
@@ -380,6 +396,7 @@ flutter build ios --release    # iOS release
 - **Core Screens**: Login, Register, Home, Rooms (formerly Rent), Building, Favorites, Profile, Settings
 - **Room Detail Screen**: Complete room detail view with photo gallery, amenities, owner info
 - **Building Screen**: Complete building listings with grid layout, search, and advanced filtering
+- **Building Detail Screen**: Enhanced detail view with full-width location section, map integration, and rooms display
 - **Favorites Screen**: Mock implementation with empty state and feature preview
 - **Navigation Architecture**: Nested GoRouter structure with proper parent-child relationships
 - **Modern UI Design**: Blue floating navigation, horizontal room cards, immersive photo headers
@@ -401,6 +418,11 @@ flutter build ios --release    # iOS release
 - **Building Filter Modal**: Gradient-designed filter modal with location sections and building type selection
 - **Profile Screen Enhancement**: Compact, beautiful profile design with 2x2 grid layout and gradient cards
 - **Profile Photo Display**: Fixed profile photo rendering in detail screen with proper loading states
+- **Interactive Map System**: Complete Google Maps integration with WebView technology
+- **MapWidget Component**: Reusable map widget with popup functionality and external app launching
+- **Building Detail Maps**: Full-width location section with dual map action buttons (Show Map/Google Maps)
+- **HTML Iframe Maps**: Optimized Google Maps embedding with coordinate extraction and responsive design
+- **Map Error Handling**: Comprehensive debugging, fallback modes, and user-friendly error recovery
 
 ### ⏳ Next Steps
 1. **APST Compatibility Filtering**: Implement tribal and professional access control for buildings and rooms

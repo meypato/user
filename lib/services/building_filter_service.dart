@@ -1,6 +1,7 @@
 import 'dart:math' as dart_math;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';
+import 'location_service.dart';
 
 class BuildingFilterService {
   static final _supabase = Supabase.instance.client;
@@ -243,7 +244,7 @@ class BuildingFilterService {
             return false;
           }
 
-          final distance = _calculateDistance(
+          final distance = LocationService.calculateDistance(
             filters.userLatitude!,
             filters.userLongitude!,
             building.latitude!,
@@ -258,6 +259,71 @@ class BuildingFilterService {
     } catch (e) {
       throw Exception('Failed to get filtered buildings: $e');
     }
+  }
+
+  /// Get filtered buildings sorted by distance from user location
+  /// Returns buildings with distance information attached
+  static Future<List<BuildingWithDistance>> getNearbyBuildings({
+    required double userLatitude,
+    required double userLongitude,
+    double? maxDistance,
+    String? cityId,
+    String? buildingType,
+    int limit = 50,
+  }) async {
+    try {
+      // Create filter params for nearby search
+      final filters = BuildingFilterParams(
+        cityId: cityId ?? 'any',
+        buildingType: buildingType ?? 'any',
+        maxDistance: maxDistance,
+        userLatitude: userLatitude,
+        userLongitude: userLongitude,
+        limit: limit,
+      );
+
+      // Get filtered buildings
+      final buildings = await getFilteredBuildings(filters);
+
+      // Calculate distances and create BuildingWithDistance objects
+      final buildingsWithDistance = buildings
+          .where((building) => building.hasLocation)
+          .map((building) {
+            final distance = LocationService.calculateDistance(
+              userLatitude,
+              userLongitude,
+              building.latitude!,
+              building.longitude!,
+            );
+            return BuildingWithDistance(building: building, distance: distance);
+          })
+          .toList();
+
+      // Sort by distance (nearest first)
+      buildingsWithDistance.sort((a, b) => a.distance.compareTo(b.distance));
+
+      return buildingsWithDistance;
+    } catch (e) {
+      throw Exception('Failed to get nearby buildings: $e');
+    }
+  }
+
+  /// Get buildings within walking distance (typically 1-2 km)
+  static Future<List<BuildingWithDistance>> getWalkableBuildings({
+    required double userLatitude,
+    required double userLongitude,
+    double walkingDistanceKm = 2.0,
+    String? cityId,
+    String? buildingType,
+  }) async {
+    return await getNearbyBuildings(
+      userLatitude: userLatitude,
+      userLongitude: userLongitude,
+      maxDistance: walkingDistanceKm,
+      cityId: cityId,
+      buildingType: buildingType,
+      limit: 20,
+    );
   }
 
   // Get filter summary for display
@@ -386,4 +452,39 @@ class BuildingFilterSummary {
     required this.cityCount,
     required this.pincodeCount,
   });
+}
+
+/// Wrapper class that combines a Building with its calculated distance
+/// Used for nearby building searches and distance-based sorting
+class BuildingWithDistance {
+  final Building building;
+  final double distance; // Distance in kilometers
+
+  BuildingWithDistance({
+    required this.building,
+    required this.distance,
+  });
+
+  /// Get formatted distance string for UI display
+  String get formattedDistance => LocationService.formatDistance(distance);
+
+  /// Check if building is within walking distance (2km)
+  bool get isWalkable => distance <= 2.0;
+
+  /// Check if building is very close (500m)
+  bool get isVeryClose => distance <= 0.5;
+
+  /// Get distance category for UI grouping
+  String get distanceCategory {
+    if (distance <= 0.5) return 'Very Close';
+    if (distance <= 2.0) return 'Walking Distance';
+    if (distance <= 5.0) return 'Short Drive';
+    if (distance <= 10.0) return 'Nearby';
+    return 'Far';
+  }
+
+  @override
+  String toString() {
+    return 'BuildingWithDistance{building: ${building.name}, distance: $formattedDistance}';
+  }
 }

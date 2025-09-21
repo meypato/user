@@ -6,11 +6,13 @@ import '../themes/app_colour.dart';
 class BuildingItemCard extends StatelessWidget {
   final Building building;
   final VoidCallback? onTap;
+  final String? distance; // Optional distance string for nearby mode
 
   const BuildingItemCard({
     super.key,
     required this.building,
     this.onTap,
+    this.distance,
   });
 
   @override
@@ -134,6 +136,46 @@ class BuildingItemCard extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  // Distance badge (shown when in nearby mode)
+                  if (distance != null)
+                    Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.success,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.near_me,
+                              color: Colors.white,
+                              size: 10,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              distance!,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               )
             : _buildPhotoPlaceholder(),
