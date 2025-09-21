@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../models/models.dart';
 import '../themes/app_colour.dart';
+import 'favorite_icon_button.dart';
 
 class CompactRoomCard extends StatelessWidget {
   final Room room;
@@ -68,6 +69,13 @@ class CompactRoomCard extends StatelessWidget {
 
                 // Right side - Price (20% width)
                 _buildPriceSection(theme, isDark),
+
+                const SizedBox(width: 8),
+
+                // Favorite icon
+                CompactFavoriteIcon(
+                  roomId: room.id,
+                ),
               ],
             ),
           ),

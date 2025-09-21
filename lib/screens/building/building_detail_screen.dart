@@ -6,6 +6,7 @@ import '../../services/building_service.dart';
 import '../../themes/app_colour.dart';
 import '../../widgets/compact_room_card.dart';
 import '../../widgets/map_widget.dart';
+import '../../widgets/favorite_icon_button.dart';
 
 class BuildingDetailScreen extends StatefulWidget {
   final String buildingId;
@@ -179,6 +180,14 @@ class _BuildingDetailScreenState extends State<BuildingDetailScreen> {
           onPressed: () => context.go('/building'),
         ),
       ),
+      actions: [
+        Container(
+          margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+          child: DetailFavoriteIcon(
+            buildingId: widget.buildingId,
+          ),
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         background: photos.isNotEmpty
             ? _buildPhotoGallery(photos)

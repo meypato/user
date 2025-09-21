@@ -28,6 +28,7 @@ class RoomDetail {
   final String? rulesFileUrl;
   final double? latitude;
   final double? longitude;
+  final String? googleMapsLink;
 
   // Location details
   final String cityName;
@@ -70,6 +71,7 @@ class RoomDetail {
     this.rulesFileUrl,
     this.latitude,
     this.longitude,
+    this.googleMapsLink,
     required this.cityName,
     required this.stateName,
     this.amenities = const [],
@@ -143,6 +145,7 @@ class RoomDetail {
       rulesFileUrl: json['buildings']['rules_file_url'] as String?,
       latitude: json['buildings']['latitude'] as double?,
       longitude: json['buildings']['longitude'] as double?,
+      googleMapsLink: json['buildings']['google_maps_link'] as String?,
 
       // Location data
       cityName: json['buildings']['cities']['name'] as String,
@@ -193,8 +196,9 @@ class RoomDetail {
       contactPersonPhone: null,
       buildingPhotos: const [],
       rulesFileUrl: null,
-      latitude: null,
-      longitude: null,
+      latitude: 27.0844, // Demo coordinates for Itanagar, Arunachal Pradesh
+      longitude: 93.6053,
+      googleMapsLink: null,
 
       // Default/placeholder values for location
       cityName: 'City Loading...',
@@ -266,8 +270,9 @@ class RoomDetail {
       contactPersonPhone: building?['contact_person_phone'] as String?,
       buildingPhotos: buildingPhotosList,
       rulesFileUrl: null,
-      latitude: null,
-      longitude: null,
+      latitude: building?['latitude'] as double?,
+      longitude: building?['longitude'] as double?,
+      googleMapsLink: building?['google_maps_link'] as String?,
 
       // Location data from nested structure
       cityName: cityName,

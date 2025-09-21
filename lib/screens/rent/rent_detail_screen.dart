@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/models.dart' hide State;
 import '../../services/room_service.dart';
 import '../../themes/app_colour.dart';
+import '../../widgets/favorite_icon_button.dart';
+import '../../widgets/map_widget.dart';
 
 class RentDetailScreen extends StatefulWidget {
   final String rentId;
@@ -121,7 +124,9 @@ class _RentDetailScreenState extends State<RentDetailScreen> {
           child: Column(
             children: [
               _buildMainInfo(theme, isDark),
+              _buildBuildingNavigationSection(theme, isDark),
               _buildLocationSection(theme, isDark),
+              _buildMapButtonsRow(theme, isDark),
               _buildAmenitiesSection(theme, isDark),
               _buildDescriptionSection(theme, isDark),
               _buildReviewsSection(theme, isDark),
@@ -155,16 +160,9 @@ class _RentDetailScreenState extends State<RentDetailScreen> {
       ),
       actions: [
         Container(
-          margin: const EdgeInsets.only(right: 16),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.3),
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.favorite_border, color: Colors.white),
-            onPressed: () {
-              // TODO: Add to favorites
-            },
+          margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+          child: DetailFavoriteIcon(
+            roomId: widget.rentId,
           ),
         ),
       ],
@@ -463,6 +461,167 @@ class _RentDetailScreenState extends State<RentDetailScreen> {
     );
   }
 
+  Widget _buildBuildingNavigationSection(ThemeData theme, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.1)
+                : AppColors.primaryBlue.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section header
+          Row(
+            children: [
+              Icon(
+                Icons.apartment,
+                color: AppColors.primaryBlue,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Building',
+                style: TextStyle(
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Building info card
+          GestureDetector(
+            onTap: () {
+              if (_rentDetail?.buildingId != null) {
+                context.go('/building/${_rentDetail!.buildingId}');
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.primaryBlue.withValues(alpha: 0.05),
+                    AppColors.primaryBlue.withValues(alpha: 0.02),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Building icon
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.business,
+                      color: AppColors.primaryBlue,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+
+                  // Building details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _rentDetail!.buildingName,
+                          style: TextStyle(
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _rentDetail!.buildingType.displayName,
+                          style: TextStyle(
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            fontSize: 14,
+                          ),
+                        ),
+                        ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          _rentDetail!.cityName,
+                          style: TextStyle(
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                      ],
+                    ),
+                  ),
+
+                  // Navigation arrow
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: AppColors.primaryBlue,
+                    size: 16,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // View building button
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                if (_rentDetail?.buildingId != null) {
+                  context.go('/building/${_rentDetail!.buildingId}');
+                }
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primaryBlue,
+                side: BorderSide(color: AppColors.primaryBlue),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: const Icon(Icons.apartment, size: 18),
+              label: const Text(
+                'View Building & Other Rooms',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLocationSection(ThemeData theme, bool isDark) {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -510,36 +669,70 @@ class _RentDetailScreenState extends State<RentDetailScreen> {
               height: 1.4,
             ),
           ),
-          if (_rentDetail!.hasLocation) ...[
-            const SizedBox(height: 16),
-            Container(
-              height: 120,
-              decoration: BoxDecoration(
-                color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+        ],
+      ),
+    );
+  }
+
+  /// Build map buttons row below location section
+  Widget _buildMapButtonsRow(ThemeData theme, bool isDark) {
+    // Don't show buttons if no location data available
+    if (_rentDetail == null ||
+        (_rentDetail!.googleMapsLink == null &&
+         (_rentDetail!.latitude == null || _rentDetail!.longitude == null))) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: Row(
+        children: [
+          // Show Map button
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () => _showMapPopup(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 2,
               ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.map,
-                      color: AppColors.primaryBlue,
-                      size: 32,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Tap to view on map',
-                      style: TextStyle(
-                        color: AppColors.primaryBlue,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+              icon: const Icon(Icons.map, size: 18),
+              label: const Text(
+                'Show Map',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-          ],
+          ),
+          const SizedBox(width: 12),
+          // Open in Google Maps button
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => _openInGoogleMaps(),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.success,
+                side: BorderSide(color: AppColors.success),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: const Icon(Icons.open_in_new, size: 18),
+              label: const Text(
+                'Google Maps',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -998,5 +1191,92 @@ class _RentDetailScreenState extends State<RentDetailScreen> {
         ),
       ),
     );
+  }
+
+  /// Show map in popup dialog
+  void _showMapPopup() {
+    if (_rentDetail == null) return;
+
+    // Use building's googleMapsLink if available, otherwise create from coordinates
+    final googleMapsLink = _rentDetail!.googleMapsLink ??
+        (_rentDetail!.latitude != null && _rentDetail!.longitude != null
+            ? 'https://www.google.com/maps?q=${_rentDetail!.latitude},${_rentDetail!.longitude}'
+            : null);
+
+    if (googleMapsLink == null) return;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          backgroundColor: Colors.transparent,
+          child: MapWidget(
+            googleMapsLink: googleMapsLink,
+            buildingName: _rentDetail!.buildingName,
+            showFullscreen: true,
+          ),
+        );
+      },
+    );
+  }
+
+  /// Open location in Google Maps app
+  Future<void> _openInGoogleMaps() async {
+    if (_rentDetail == null) return;
+
+    // Use building's googleMapsLink if available, otherwise create from coordinates
+    final googleMapsUrl = _rentDetail!.googleMapsLink ??
+        (_rentDetail!.latitude != null && _rentDetail!.longitude != null
+            ? 'https://www.google.com/maps?q=${_rentDetail!.latitude},${_rentDetail!.longitude}'
+            : null);
+
+    if (googleMapsUrl == null) {
+      print('No Google Maps link or coordinates available');
+      return;
+    }
+
+    print('Opening Google Maps URL: $googleMapsUrl');
+
+    try {
+      final uri = Uri.parse(googleMapsUrl);
+      print('Parsed URI: $uri');
+
+      final canLaunch = await canLaunchUrl(uri);
+      print('Can launch URL: $canLaunch');
+
+      if (canLaunch) {
+        final launched = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        print('URL launched successfully: $launched');
+      } else {
+        // Try alternative launch modes
+        print('Trying alternative launch mode...');
+        await launchUrl(
+          uri,
+          mode: LaunchMode.platformDefault,
+        );
+      }
+    } catch (e) {
+      print('Error opening Google Maps: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open Google Maps: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            action: SnackBarAction(
+              label: 'Copy Link',
+              textColor: Colors.white,
+              onPressed: () {
+                // TODO: Copy link to clipboard
+                print('Copy link functionality would go here');
+              },
+            ),
+          ),
+        );
+      }
+    }
   }
 }

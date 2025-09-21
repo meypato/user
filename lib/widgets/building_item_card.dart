@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../models/models.dart';
 import '../themes/app_colour.dart';
+import 'favorite_icon_button.dart';
 
 class BuildingItemCard extends StatelessWidget {
   final Building building;
@@ -176,6 +177,15 @@ class BuildingItemCard extends StatelessWidget {
                         ),
                       ),
                     ),
+
+                  // Favorite icon in bottom-left corner (clean, always accessible)
+                  Positioned(
+                    bottom: 8,
+                    left: 8,
+                    child: CardFavoriteIcon(
+                      buildingId: building.id,
+                    ),
+                  ),
                 ],
               )
             : _buildPhotoPlaceholder(),

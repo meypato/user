@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../models/models.dart';
 import '../themes/app_colour.dart';
+import 'favorite_icon_button.dart';
 
 class RentItemCard extends StatelessWidget {
   final Room room;
@@ -234,6 +235,15 @@ class RentItemCard extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+        ),
+
+        // Favorite icon in top-right corner
+        Positioned(
+          top: 8,
+          right: 8,
+          child: CardFavoriteIcon(
+            roomId: room.id,
           ),
         ),
       ],

@@ -138,6 +138,9 @@ class RoomService {
               contact_person_name,
               contact_person_phone,
               photos,
+              latitude,
+              longitude,
+              google_maps_link,
               cities(name)
             )
           ''')
@@ -672,6 +675,35 @@ class RoomService {
       };
     } catch (e) {
       throw Exception('Failed to fetch price range: $e');
+    }
+  }
+
+  // Get rooms by their IDs (for favorites)
+  static Future<List<Room>> getRoomsByIds(List<String> roomIds) async {
+    if (roomIds.isEmpty) return [];
+
+    try {
+      final response = await _supabase
+          .from('rooms')
+          .select('''
+            *,
+            buildings!inner(
+              id,
+              name,
+              address_line1,
+              address_line2,
+              state_id,
+              city_id,
+              building_type,
+              cities(name)
+            )
+          ''')
+          .inFilter('id', roomIds)
+          .order('created_at', ascending: false);
+
+      return response.map<Room>((roomJson) => Room.fromJson(roomJson)).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch favorite rooms: $e');
     }
   }
 }

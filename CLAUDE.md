@@ -63,13 +63,14 @@ meypato/
 │   ├── models/                        # Data models and entities
 │   │   ├── building.dart              # Building/Property model
 │   │   ├── enums.dart                 # All enums (UserRole, APST, etc.)
+│   │   ├── favorite.dart              # User favorites models for rooms and buildings
 │   │   ├── models.dart                # Barrel export file
 │   │   ├── payment.dart               # Payment/Transaction model
 │   │   ├── profile.dart               # User profile model
 │   │   ├── reference_models.dart      # Location models (State, City, etc.)
 │   │   ├── review.dart                # Review/Feedback model
 │   │   ├── room.dart                  # Room/Rental unit model
-│   │   ├── room_detail.dart           # Comprehensive room detail model with nested data
+│   │   ├── room_detail.dart           # Comprehensive room detail model with nested data and building location
 │   │   └── subscription.dart          # Tenancy/Subscription model
 │   ├── screens/                       # UI screens by feature
 │   │   ├── auth/                      # Authentication screens
@@ -79,11 +80,11 @@ meypato/
 │   │   │   └── home_screen.dart       # Search/welcome screen with drawer + bottom nav
 │   │   ├── rent/                      # Property rental screens (Rooms)
 │   │   │   ├── rent_screen.dart       # Room listings with drawer + bottom nav
-│   │   │   └── rent_detail_screen.dart # Detailed room view with photo gallery
+│   │   │   └── rent_detail_screen.dart # Detailed room view with photo gallery, building navigation, and map integration
 │   │   ├── building/                  # Building screens
 │   │   │   └── building_screen.dart   # Building listings with drawer + bottom nav
 │   │   ├── favorites/                 # Favorites screens
-│   │   │   └── favorites_screen.dart  # Favorites overview with drawer + bottom nav
+│   │   │   └── favorites_screen.dart  # Functional favorites with tabbed interface for rooms and buildings
 │   │   ├── location/                  # Location screens
 │   │   │   └── location_picker_screen.dart # Full-page city selection with search
 │   │   ├── profile/                   # User profile screens
@@ -95,11 +96,13 @@ meypato/
 │   │   ├── auth_service.dart          # Email/password authentication
 │   │   ├── building_filter_service.dart # Building filtering and search operations
 │   │   ├── city_service.dart          # City/location database operations
+│   │   ├── favorites_service.dart     # Complete favorites CRUD operations with batch support
 │   │   ├── filter_service.dart        # Room filtering and search operations
 │   │   ├── google_auth_service.dart   # Google Sign-In integration
 │   │   ├── profile_service.dart       # Profile CRUD operations
-│   │   └── room_service.dart          # Room/rental data operations with search filters
+│   │   └── room_service.dart          # Room/rental data operations with search filters and building location data
 │   ├── providers/                     # State management providers
+│   │   ├── favorites_provider.dart    # Favorites state management with real-time sync
 │   │   └── profile_provider.dart      # Profile state with Provider
 │   ├── themes/                        # App theming and styling
 │   │   ├── app_colour.dart            # Color palette (light/dark)
@@ -110,6 +113,7 @@ meypato/
 │   │   ├── building_filter_modal.dart # Building filter system with location and type filtering
 │   │   ├── building_item_card.dart    # Building card with photo and property details
 │   │   ├── compact_room_card.dart     # Compact room cards for building detail page
+│   │   ├── favorite_icon_button.dart  # Reusable favorite heart icons with variants for different contexts
 │   │   ├── filter_modal.dart          # Room filter system with beautiful gradient design
 │   │   ├── location_section.dart      # Database-connected user location display with city picker
 │   │   ├── map_widget.dart            # Interactive Google Maps WebView widget with popup functionality
@@ -136,7 +140,9 @@ meypato/
 │       ├── amenities.sql              # Property amenities
 │       ├── room_amenities.sql         # Room-amenity mapping
 │       ├── building_tribe_exceptions.sql     # Tribal access control
-│       └── building_profession_exceptions.sql # Professional access control
+│       ├── building_profession_exceptions.sql # Professional access control
+│       ├── user_favorite_rooms.sql    # User favorites for rooms with RLS
+│       └── user_favorite_buildings.sql # User favorites for buildings with RLS
 ├── pubspec.yaml                       # Dependencies and configuration
 ├── CLAUDE.md                          # Project documentation (this file)
 ├── CREDENTIALS.md                     # OAuth credentials (gitignored)
@@ -356,6 +362,28 @@ body: SafeArea(  // This conflicts with extendBody: true
 - **Platform Optimization**: Mobile-optimized User-Agent and navigation controls for smooth WebView performance
 - **Loading States**: Progressive loading indicators and graceful fallbacks for missing map data
 
+### **Complete Favorites System**
+- **Database Architecture**: Separate tables for room and building favorites with Row Level Security
+- **FavoritesService**: Comprehensive CRUD operations with batch support and performance optimization
+- **FavoritesProvider**: Real-time state management with Provider pattern and auth state synchronization
+- **Reusable UI Components**: Multiple favorite icon variants (CardFavoriteIcon, DetailFavoriteIcon, CompactFavoriteIcon)
+- **Smart Icon Placement**: Context-aware positioning (building cards: bottom-left, room cards: top-right)
+- **Optimistic UI Updates**: Instant feedback with error recovery and retry mechanisms
+- **Tabbed Interface**: Beautiful favorites screen with separate tabs for rooms and buildings
+- **Empty State Handling**: Encouraging empty states with action buttons to browse content
+- **Cross-Screen Integration**: Favorite icons on all relevant screens (listings, detail views)
+- **Data Persistence**: Automatic sync with backend and local state management
+
+### **Enhanced Room Detail Screen**
+- **Building Navigation Section**: Clickable building card with complete building information
+- **Location Data Integration**: Room inherits location data from parent building via proper database joins
+- **Google Maps Integration**: Direct building Google Maps links with coordinate fallback
+- **Dual Map Actions**: "Show Map" popup and "Google Maps" external app launch
+- **Robust Error Handling**: Comprehensive debugging and fallback launch modes for external maps
+- **Building Context**: Full building information display with photos and contact details
+- **Seamless Navigation**: Direct navigation from room to building detail screen
+- **Location Section**: Full-width building address display with map action buttons below
+
 ---
 
 ## User Flow (Tenants)
@@ -397,7 +425,7 @@ flutter build ios --release    # iOS release
 - **Room Detail Screen**: Complete room detail view with photo gallery, amenities, owner info
 - **Building Screen**: Complete building listings with grid layout, search, and advanced filtering
 - **Building Detail Screen**: Enhanced detail view with full-width location section, map integration, and rooms display
-- **Favorites Screen**: Mock implementation with empty state and feature preview
+- **Favorites System**: Complete implementation with database tables, service layer, state management, and functional UI
 - **Navigation Architecture**: Nested GoRouter structure with proper parent-child relationships
 - **Modern UI Design**: Blue floating navigation, horizontal room cards, immersive photo headers
 - **Theme Integration**: Proper app bar colors, consistent theming across all screens
@@ -423,14 +451,15 @@ flutter build ios --release    # iOS release
 - **Building Detail Maps**: Full-width location section with dual map action buttons (Show Map/Google Maps)
 - **HTML Iframe Maps**: Optimized Google Maps embedding with coordinate extraction and responsive design
 - **Map Error Handling**: Comprehensive debugging, fallback modes, and user-friendly error recovery
+- **Room Detail Enhancement**: Complete building navigation and map integration with location data inheritance
 
 ### ⏳ Next Steps
 1. **APST Compatibility Filtering**: Implement tribal and professional access control for buildings and rooms
-2. **Favorites Functionality**: Actual save/remove favorites with data persistence
-3. **Subscription System**: Rental agreements and payments
-4. **Reviews**: Rating system for buildings
-5. **Image Upload**: Photo management for properties/profiles
-6. **Notification System**: Push notifications and in-app alerts
+2. **Subscription System**: Rental agreements and payments
+3. **Reviews**: Rating system for buildings
+4. **Image Upload**: Photo management for properties/profiles
+5. **Notification System**: Push notifications and in-app alerts
+6. **Enhanced Search**: Advanced filtering with APST/profession compatibility
 
 ---
 

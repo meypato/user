@@ -164,4 +164,27 @@ class BuildingService {
       throw Exception('Failed to load building rooms: $e');
     }
   }
+
+  // Get buildings by their IDs (for favorites)
+  static Future<List<Building>> getBuildingsByIds(List<String> buildingIds) async {
+    if (buildingIds.isEmpty) return [];
+
+    try {
+      final response = await _client
+          .from('buildings')
+          .select('''
+            *,
+            cities(name)
+          ''')
+          .inFilter('id', buildingIds)
+          .eq('is_active', true)
+          .order('created_at', ascending: false);
+
+      return (response as List)
+          .map((json) => Building.fromJson(json))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to fetch favorite buildings: $e');
+    }
+  }
 }

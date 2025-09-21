@@ -5,6 +5,7 @@ import 'configs/supabase_config.dart';
 import 'common/router.dart';
 import 'themes/theme_provider.dart';
 import 'providers/profile_provider.dart';
+import 'providers/favorites_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => ProfileProvider()),
+        ChangeNotifierProvider(create: (context) => FavoritesProvider()),
       ],
       child: const MainApp(),
     ),
@@ -45,22 +47,27 @@ class _MainAppState extends State<MainApp> {
       final supabase = Supabase.instance.client;
       if (supabase.auth.currentUser != null) {
         final profileProvider = context.read<ProfileProvider>();
+        final favoritesProvider = context.read<FavoritesProvider>();
         profileProvider.loadProfile();
+        favoritesProvider.loadFavorites();
       }
 
       // Listen to auth state changes and load profile when user signs in
       supabase.auth.onAuthStateChange.listen((data) {
         if (!mounted) return;
-        
+
         final profileProvider = context.read<ProfileProvider>();
+        final favoritesProvider = context.read<FavoritesProvider>();
         final session = data.session;
-        
+
         if (session != null) {
-          // User signed in, load profile
+          // User signed in, load profile and favorites
           profileProvider.loadProfile();
+          favoritesProvider.loadFavorites();
         } else {
-          // User signed out, clear profile
+          // User signed out, clear profile and favorites
           profileProvider.clearProfile();
+          favoritesProvider.clearFavorites();
         }
       });
     });
