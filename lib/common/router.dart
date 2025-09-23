@@ -2,11 +2,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../screens/splash/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/profile/profile_screen.dart';
-import '../screens/profile/profile_detail_screen.dart';
+import '../screens/profile/profile_view_screen.dart';
+import '../screens/profile/profile_edit_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/rent/rent_screen.dart';
 import '../screens/rent/rent_detail_screen.dart';
@@ -19,11 +21,17 @@ import '../services/auth_service.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/splash',
     redirect: (context, state) {
       final isAuthenticated = AuthService.isAuthenticated;
       final isLoggingIn = state.matchedLocation == '/login';
       final isRegistering = state.matchedLocation == '/signup';
+      final isSplash = state.matchedLocation == '/splash';
+
+      // Allow splash screen to handle its own navigation
+      if (isSplash) {
+        return null;
+      }
 
       if (!isAuthenticated && !isLoggingIn && !isRegistering) {
         return '/login';
@@ -37,6 +45,11 @@ class AppRouter {
     },
     refreshListenable: GoRouterRefreshStream(AuthService.authStateChanges),
     routes: [
+      GoRoute(
+        path: '/splash',
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/login',
         name: 'login',
@@ -56,11 +69,18 @@ class AppRouter {
         path: '/profile',
         name: 'profile',
         builder: (context, state) => const ProfileScreen(),
-      ),
-      GoRoute(
-        path: '/profile-details',
-        name: 'profile-details',
-        builder: (context, state) => const ProfileDetailScreen(),
+        routes: [
+          GoRoute(
+            path: 'view',
+            name: 'profile-view',
+            builder: (context, state) => const ProfileViewScreen(),
+          ),
+          GoRoute(
+            path: 'edit',
+            name: 'profile-edit',
+            builder: (context, state) => const ProfileEditScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: '/settings',
@@ -151,11 +171,13 @@ class GoRouterRefreshStream extends ChangeNotifier {
 
 // Route names for easy reference
 class RouteNames {
+  static const String splash = 'splash';
   static const String login = 'login';
   static const String signup = 'signup';
   static const String home = 'home';
   static const String profile = 'profile';
-  static const String profileDetails = 'profile-details';
+  static const String profileView = 'profile-view';
+  static const String profileEdit = 'profile-edit';
   static const String settings = 'settings';
   static const String rent = 'rent';
   static const String rentDetail = 'rent-detail';
@@ -168,11 +190,13 @@ class RouteNames {
 
 // Route paths for easy reference
 class RoutePaths {
+  static const String splash = '/splash';
   static const String login = '/login';
   static const String signup = '/signup';
   static const String home = '/home';
   static const String profile = '/profile';
-  static const String profileDetails = '/profile-details';
+  static const String profileView = '/profile/view';
+  static const String profileEdit = '/profile/edit';
   static const String settings = '/settings';
   static const String rent = '/rent';
   static const String rentDetail = '/rent/:rentId';

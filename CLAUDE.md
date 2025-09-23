@@ -73,6 +73,8 @@ meypato/
 │   │   ├── room_detail.dart           # Comprehensive room detail model with nested data and building location
 │   │   └── subscription.dart          # Tenancy/Subscription model
 │   ├── screens/                       # UI screens by feature
+│   │   ├── splash/                     # App launch screens
+│   │   │   └── splash_screen.dart     # Animated splash screen with auto-navigation
 │   │   ├── auth/                      # Authentication screens
 │   │   │   ├── login_screen.dart      # Login with email + Google
 │   │   │   └── register_screen.dart   # User registration
@@ -199,6 +201,11 @@ meypato/
 
 ### **Navigation Flow**
 ```
+App Launch:
+└── Splash Screen (/splash) → Auto-navigation after 3s
+    ├── → /home (if authenticated)
+    └── → /login (if not authenticated)
+
 Bottom Navigation:
 ├── Home (index 0) → /home (HomeScreen)
 ├── Rooms (index 1) → /rent (RentScreen) → /rent/:rentId (RentDetailScreen)
@@ -385,6 +392,16 @@ body: SafeArea(  // This conflicts with extendBody: true
 - **Seamless Navigation**: Direct navigation from room to building detail screen
 - **Location Section**: Full-width building address display with map action buttons below
 
+### **Professional Splash Screen**
+- **Animated Brand Experience**: Beautiful gradient background with fade and scale animations
+- **Logo Integration**: Rounded logo container with shadow effects and fallback icon
+- **Brand Typography**: Large "Meypato" title with shadow effects and professional tagline
+- **Loading Feedback**: Circular progress indicator for user engagement
+- **Smart Auto-Navigation**: 3-second sequence with authentication-aware routing
+- **Theme Responsive**: Adapts gradient colors for light/dark mode compatibility
+- **Error Resilient**: Graceful fallback if logo asset is missing
+- **Professional Animations**: Staggered fade-in and elastic scale with proper timing curves
+
 ---
 
 ## User Flow (Tenants)
@@ -418,6 +435,7 @@ flutter build ios --release    # iOS release
 
 ### ✅ Completed Features
 - **Foundation**: Flutter project setup + Supabase integration
+- **Professional Splash Screen**: Animated brand experience with auto-navigation and theme-responsive design
 - **Authentication**: Email/password + Google Sign-In + auth guards
 - **UI/Navigation**: Beautiful drawer + compact floating blue bottom navigation + light/dark themes
 - **Profile Management**: Complete CRUD with state management
