@@ -69,7 +69,7 @@ class SettingsScreen extends StatelessWidget {
                       title: 'Edit Profile',
                       color: AppColors.primaryBlue,
                       onTap: () {
-                        context.push(RoutePaths.profileDetails);
+                        context.push(RoutePaths.profileEdit);
                       },
                       isDark: isDark,
                     ),

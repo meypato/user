@@ -161,9 +161,10 @@ class ProfileProvider extends ChangeNotifier {
       _states = results[0] as List<State>;
       _professions = results[1] as List<Profession>;
       _tribes = results[2] as List<Tribe>;
-      
+
       notifyListeners();
     } catch (e) {
+      print('ProfileProvider: Error loading dropdown data: $e'); // Debug
       _setError('Failed to load dropdown data: $e');
     }
   }

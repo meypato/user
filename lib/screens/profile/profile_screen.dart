@@ -224,11 +224,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: _buildCompactMenuItem(
-                              icon: Icons.edit_rounded,
-                              title: 'Profile Edit',
+                              icon: Icons.visibility_rounded,
+                              title: 'View Profile',
                               color: AppColors.primaryBlue,
                               onTap: () {
-                                context.push(RoutePaths.profileDetails);
+                                context.push('/profile/view');
                               },
                               isDark: isDark,
                             ),

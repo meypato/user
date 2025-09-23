@@ -44,29 +44,36 @@ enum SexType {
 }
 
 enum APSTStatus {
-  st,
-  sc,
-  obc,
-  general;
+  apst,
+  nonApst;
 
   String get displayName {
     switch (this) {
-      case APSTStatus.st:
-        return 'ST';
-      case APSTStatus.sc:
-        return 'SC';
-      case APSTStatus.obc:
-        return 'OBC';
-      case APSTStatus.general:
-        return 'General';
+      case APSTStatus.apst:
+        return 'APST';
+      case APSTStatus.nonApst:
+        return 'Non-APST';
+    }
+  }
+
+  String get databaseValue {
+    switch (this) {
+      case APSTStatus.apst:
+        return 'APST';
+      case APSTStatus.nonApst:
+        return 'Non-APST';
     }
   }
 
   static APSTStatus fromString(String value) {
-    return APSTStatus.values.firstWhere(
-      (status) => status.name == value.toLowerCase(),
-      orElse: () => APSTStatus.general,
-    );
+    switch (value.toLowerCase()) {
+      case 'apst':
+        return APSTStatus.apst;
+      case 'non-apst':
+        return APSTStatus.nonApst;
+      default:
+        return APSTStatus.nonApst;
+    }
   }
 }
 

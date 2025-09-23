@@ -30,7 +30,7 @@ class RentItemCard extends StatelessWidget {
         top: isFirst ? 16 : 8,
         bottom: 8,
       ),
-      height: 120, // More compact height
+      height: 140, // More compact height
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -129,7 +129,7 @@ class RentItemCard extends StatelessWidget {
           ),
           child: SizedBox(
             width: double.infinity,
-            height: 120,
+            height: 140,
             child: room.hasPhotos
                 ? Image.network(
                     room.photos.first,
@@ -400,7 +400,7 @@ class RentItemCard extends StatelessWidget {
                 room.description!,
                 style: TextStyle(
                   color: isDark ? AppColors.textSecondaryDark : const Color(0xFF64748B),
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: FontWeight.w400,
                   letterSpacing: 0.1,
                   height: 1.3,

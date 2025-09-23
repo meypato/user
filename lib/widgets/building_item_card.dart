@@ -44,7 +44,7 @@ class BuildingItemCard extends StatelessWidget {
           children: [
             // Photo section (square top half)
             Expanded(
-              flex: 3,
+              flex: 4,
               child: _buildPhotoSection(theme),
             ),
 

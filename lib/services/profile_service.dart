@@ -61,7 +61,7 @@ class ProfileService {
         'pincode': pincode,
         'profession_id': professionId,
         'tribe_id': tribeId,
-        'apst': apst?.name,
+        'apst': apst?.databaseValue,
         'emergency_contact_name': emergencyContactName,
         'emergency_contact_phone': emergencyContactPhone,
         'role': 'tenant',
@@ -81,6 +81,7 @@ class ProfileService {
 
       return Profile.fromJson(response);
     } catch (e) {
+      print('ProfileService create error: $e'); // Debug logging
       throw Exception('Failed to create profile: $e');
     }
   }
@@ -119,7 +120,7 @@ class ProfileService {
       if (cityId != null) updateData['city_id'] = cityId;
       if (professionId != null) updateData['profession_id'] = professionId;
       if (tribeId != null) updateData['tribe_id'] = tribeId;
-      if (apst != null) updateData['apst'] = apst.name;
+      if (apst != null) updateData['apst'] = apst.databaseValue;
       if (emergencyContactName != null) updateData['emergency_contact_name'] = emergencyContactName;
       if (emergencyContactPhone != null) updateData['emergency_contact_phone'] = emergencyContactPhone;
 
@@ -132,6 +133,7 @@ class ProfileService {
 
       return Profile.fromJson(response);
     } catch (e) {
+      print('ProfileService update error: $e'); // Debug logging
       throw Exception('Failed to update profile: $e');
     }
   }
@@ -253,6 +255,7 @@ class ProfileService {
 
       return response.map<Profession>((json) => Profession.fromJson(json)).toList();
     } catch (e) {
+      print('ProfileService professions error: $e'); // Debug
       throw Exception('Failed to fetch professions: $e');
     }
   }
@@ -267,6 +270,7 @@ class ProfileService {
 
       return response.map<Tribe>((json) => Tribe.fromJson(json)).toList();
     } catch (e) {
+      print('ProfileService tribes error: $e'); // Debug
       throw Exception('Failed to fetch tribes: $e');
     }
   }

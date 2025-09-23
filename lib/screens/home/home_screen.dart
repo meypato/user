@@ -90,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       constraints: const BoxConstraints(
                         maxWidth: 400,
-                        maxHeight: 580,
+                        maxHeight: 600,
                       ),
                       margin: const EdgeInsets.symmetric(horizontal: 20),
                       child: _buildMainContent(),

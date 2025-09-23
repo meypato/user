@@ -99,7 +99,7 @@ class Profile {
       'age': age,
       'sex': sex?.name,
       'tribe_id': tribeId,
-      'apst': apst?.name,
+      'apst': apst?.databaseValue,
       'address_line1': addressLine1,
       'address_line2': addressLine2,
       'country': country,
