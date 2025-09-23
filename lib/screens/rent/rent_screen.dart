@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/models.dart' hide State;
 import '../../services/filter_service.dart';
+import '../../services/featured_service.dart';
 import '../../themes/app_colour.dart';
 import '../../widgets/bottom_navigation.dart';
 import '../../widgets/rent_item_card.dart';
@@ -68,7 +69,15 @@ class _RentScreenState extends State<RentScreen> {
       // Use provided filters or current filters
       final filtersToUse = filters ?? _currentFilters;
 
-      final rooms = await FilterService.getFilteredRooms(filtersToUse);
+      // Use featured priority service for better room sorting (featured first, then popular, then regular)
+      final rooms = await FeaturedService.getRoomsWithFeaturedPriority(
+        limit: 50,
+        cityId: filtersToUse.cityId != 'any' ? filtersToUse.cityId : null,
+        roomType: filtersToUse.roomType != 'any'
+            ? RoomType.fromString(filtersToUse.roomType)
+            : null,
+        maxFee: filtersToUse.maxPrice,
+      );
 
       setState(() {
         _rooms = rooms;

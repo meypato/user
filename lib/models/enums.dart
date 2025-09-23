@@ -185,3 +185,30 @@ enum RoomAvailability {
     );
   }
 }
+
+enum FeaturedType {
+  none,
+  featured,
+  popular,
+  both;
+
+  String get displayName {
+    switch (this) {
+      case FeaturedType.none:
+        return 'Regular';
+      case FeaturedType.featured:
+        return 'Featured';
+      case FeaturedType.popular:
+        return 'Popular';
+      case FeaturedType.both:
+        return 'Featured & Popular';
+    }
+  }
+
+  static FeaturedType fromBooleans(bool isFeatured, bool isPopular) {
+    if (isFeatured && isPopular) return FeaturedType.both;
+    if (isFeatured) return FeaturedType.featured;
+    if (isPopular) return FeaturedType.popular;
+    return FeaturedType.none;
+  }
+}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../models/models.dart' hide State;
 import '../../services/building_filter_service.dart';
+import '../../services/featured_service.dart';
 import '../../services/location_service.dart';
 import '../../themes/app_colour.dart';
 import '../../widgets/bottom_navigation.dart';
@@ -43,8 +44,14 @@ class _BuildingScreenState extends State<BuildingScreen> {
       // Use provided filters or current filters
       final filtersToUse = filters ?? _currentFilters;
 
-      // Load buildings from BuildingFilterService
-      final buildings = await BuildingFilterService.getFilteredBuildings(filtersToUse);
+      // Load buildings with featured priority (featured first, then popular, then regular)
+      final buildings = await FeaturedService.getBuildingsWithFeaturedPriority(
+        limit: 50,
+        cityId: filtersToUse.cityId != 'any' ? filtersToUse.cityId : null,
+        buildingType: filtersToUse.buildingType != 'any'
+            ? BuildingType.fromString(filtersToUse.buildingType)
+            : null,
+      );
 
       setState(() {
         _buildings = buildings;
@@ -587,8 +594,29 @@ class _BuildingScreenState extends State<BuildingScreen> {
         buildingType: _currentFilters.buildingType != 'any' ? _currentFilters.buildingType : null,
       );
 
+      // Sort nearby buildings by featured status first, then by distance
+      final sortedNearbyBuildings = nearbyBuildings.toList()
+        ..sort((a, b) {
+          // First priority: Featured status
+          if (a.building.isFeatured && !b.building.isFeatured) return -1;
+          if (!a.building.isFeatured && b.building.isFeatured) return 1;
+
+          // Second priority: Featured priority
+          if (a.building.isFeatured && b.building.isFeatured) {
+            final priorityComparison = b.building.featuredPriority.compareTo(a.building.featuredPriority);
+            if (priorityComparison != 0) return priorityComparison;
+          }
+
+          // Third priority: Popular status
+          if (a.building.isPopular && !b.building.isPopular) return -1;
+          if (!a.building.isPopular && b.building.isPopular) return 1;
+
+          // Fourth priority: Distance
+          return a.distance.compareTo(b.distance);
+        });
+
       setState(() {
-        _buildings = nearbyBuildings.map((bwd) => bwd.building).toList();
+        _buildings = sortedNearbyBuildings.map((bwd) => bwd.building).toList();
         _isLoading = false;
       });
     } catch (e) {

@@ -14,6 +14,9 @@ create table public.rooms (
   updated_at timestamp with time zone not null default now(),
   photos jsonb null default '[]'::jsonb,
   created_by_agent_id uuid null,
+  is_featured boolean null default false,
+  is_popular boolean null default false,
+  featured_priority integer null default 0,
   constraint rooms_pkey primary key (id),
   constraint rooms_building_id_room_number_key unique (building_id, room_number),
   constraint rooms_room_id_key unique (room_id),
@@ -32,6 +35,14 @@ create index IF not exists rooms_availability_status_idx on public.rooms using b
 create index IF not exists rooms_fee_idx on public.rooms using btree (fee) TABLESPACE pg_default;
 
 create index IF not exists rooms_photos_idx on public.rooms using gin (photos) TABLESPACE pg_default;
+
+create index IF not exists rooms_featured_idx on public.rooms using btree (is_featured, featured_priority desc) TABLESPACE pg_default
+where
+  (is_featured = true);
+
+create index IF not exists rooms_popular_idx on public.rooms using btree (is_popular) TABLESPACE pg_default
+where
+  (is_popular = true);
 
 create trigger trigger_generate_room_id BEFORE INSERT
 or

@@ -21,6 +21,9 @@ create table public.buildings (
   photos jsonb null default '[]'::jsonb,
   created_by_agent_id uuid null,
   google_maps_link text null,
+  is_featured boolean null default false,
+  is_popular boolean null default false,
+  featured_priority integer null default 0,
   constraint buildings_pkey primary key (id),
   constraint buildings_building_id_key unique (building_id),
   constraint buildings_created_by_agent_id_fkey foreign KEY (created_by_agent_id) references profiles (id),
@@ -41,5 +44,13 @@ create index IF not exists buildings_is_active_idx on public.buildings using btr
 
 create index IF not exists buildings_state_city_idx on public.buildings using btree (state_id, city_id) TABLESPACE pg_default;
 
+create index IF not exists buildings_featured_idx on public.buildings using btree (is_featured, featured_priority desc) TABLESPACE pg_default
+where
+  (is_featured = true);
+
+create index IF not exists buildings_popular_idx on public.buildings using btree (is_popular) TABLESPACE pg_default
+where
+  (is_popular = true);
+
 create trigger trigger_generate_building_id BEFORE INSERT on buildings for EACH row when (new.building_id is null)
-execute FUNCTION generate_building_id (); 
+execute FUNCTION generate_building_id ();

@@ -23,6 +23,9 @@ class Building {
   final List<String> photos;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool isFeatured;
+  final bool isPopular;
+  final int featuredPriority;
 
   const Building({
     required this.id,
@@ -46,6 +49,9 @@ class Building {
     this.photos = const [],
     required this.createdAt,
     required this.updatedAt,
+    this.isFeatured = false,
+    this.isPopular = false,
+    this.featuredPriority = 0,
   });
 
   factory Building.fromJson(Map<String, dynamic> json) {
@@ -78,6 +84,9 @@ class Building {
       photos: photosList,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      isFeatured: json['is_featured'] as bool? ?? false,
+      isPopular: json['is_popular'] as bool? ?? false,
+      featuredPriority: json['featured_priority'] as int? ?? 0,
     );
   }
 
@@ -104,6 +113,9 @@ class Building {
       'photos': photos,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'is_featured': isFeatured,
+      'is_popular': isPopular,
+      'featured_priority': featuredPriority,
     };
   }
 
@@ -126,6 +138,9 @@ class Building {
     String? googleMapsLink,
     List<String>? photos,
     DateTime? updatedAt,
+    bool? isFeatured,
+    bool? isPopular,
+    int? featuredPriority,
   }) {
     return Building(
       id: id,
@@ -149,6 +164,9 @@ class Building {
       photos: photos ?? this.photos,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
+      isFeatured: isFeatured ?? this.isFeatured,
+      isPopular: isPopular ?? this.isPopular,
+      featuredPriority: featuredPriority ?? this.featuredPriority,
     );
   }
 
@@ -197,6 +215,8 @@ class Building {
     final distance = distanceTo(lat, lon);
     return distance != null ? LocationService.formatDistance(distance) : null;
   }
+
+  FeaturedType get featuredType => FeaturedType.fromBooleans(isFeatured, isPopular);
 
   @override
   bool operator ==(Object other) {

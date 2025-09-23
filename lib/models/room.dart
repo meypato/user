@@ -15,6 +15,9 @@ class Room {
   final List<String> photos;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool isFeatured;
+  final bool isPopular;
+  final int featuredPriority;
 
   // Building details (from JOIN)
   final String? buildingName;
@@ -35,6 +38,9 @@ class Room {
     this.photos = const [],
     required this.createdAt,
     required this.updatedAt,
+    this.isFeatured = false,
+    this.isPopular = false,
+    this.featuredPriority = 0,
     this.buildingName,
     this.cityName,
   });
@@ -75,6 +81,9 @@ class Room {
       photos: photosList,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      isFeatured: json['is_featured'] as bool? ?? false,
+      isPopular: json['is_popular'] as bool? ?? false,
+      featuredPriority: json['featured_priority'] as int? ?? 0,
       buildingName: buildingName,
       cityName: cityName,
     );
@@ -96,6 +105,9 @@ class Room {
       'photos': photos,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'is_featured': isFeatured,
+      'is_popular': isPopular,
+      'featured_priority': featuredPriority,
       'building_name': buildingName,
       'city_name': cityName,
     };
@@ -113,6 +125,9 @@ class Room {
     String? description,
     List<String>? photos,
     DateTime? updatedAt,
+    bool? isFeatured,
+    bool? isPopular,
+    int? featuredPriority,
     String? buildingName,
     String? cityName,
   }) {
@@ -131,6 +146,9 @@ class Room {
       photos: photos ?? this.photos,
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
+      isFeatured: isFeatured ?? this.isFeatured,
+      isPopular: isPopular ?? this.isPopular,
+      featuredPriority: featuredPriority ?? this.featuredPriority,
       buildingName: buildingName ?? this.buildingName,
       cityName: cityName ?? this.cityName,
     );
@@ -153,6 +171,8 @@ class Room {
   String get formattedSecurityFee => hasSecurityFee ? '₹${securityFee!.toStringAsFixed(0)}' : 'No deposit';
 
   double get totalUpfrontCost => fee + (securityFee ?? 0);
+
+  FeaturedType get featuredType => FeaturedType.fromBooleans(isFeatured, isPopular);
 
   @override
   bool operator ==(Object other) {

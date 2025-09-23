@@ -61,15 +61,15 @@ meypato/
 │   ├── configs/                       # App configuration files
 │   │   └── supabase_config.dart       # Supabase connection setup
 │   ├── models/                        # Data models and entities
-│   │   ├── building.dart              # Building/Property model
-│   │   ├── enums.dart                 # All enums (UserRole, APST, etc.)
+│   │   ├── building.dart              # Building/Property model with featured/popular fields
+│   │   ├── enums.dart                 # All enums (UserRole, APST, FeaturedType, etc.)
 │   │   ├── favorite.dart              # User favorites models for rooms and buildings
 │   │   ├── models.dart                # Barrel export file
 │   │   ├── payment.dart               # Payment/Transaction model
 │   │   ├── profile.dart               # User profile model
 │   │   ├── reference_models.dart      # Location models (State, City, etc.)
 │   │   ├── review.dart                # Review/Feedback model
-│   │   ├── room.dart                  # Room/Rental unit model
+│   │   ├── room.dart                  # Room/Rental unit model with featured/popular fields
 │   │   ├── room_detail.dart           # Comprehensive room detail model with nested data and building location
 │   │   └── subscription.dart          # Tenancy/Subscription model
 │   ├── screens/                       # UI screens by feature
@@ -97,6 +97,7 @@ meypato/
 │   │   ├── building_filter_service.dart # Building filtering and search operations
 │   │   ├── city_service.dart          # City/location database operations
 │   │   ├── favorites_service.dart     # Complete favorites CRUD operations with batch support
+│   │   ├── featured_service.dart      # Featured/popular listing management with priority-based queries
 │   │   ├── filter_service.dart        # Room filtering and search operations
 │   │   ├── google_auth_service.dart   # Google Sign-In integration
 │   │   ├── profile_service.dart       # Profile CRUD operations
@@ -128,8 +129,8 @@ meypato/
 │   └── databases/                     # Database documentation
 │       ├── database.md                # Complete schema reference
 │       ├── profile.sql                # User profiles table
-│       ├── buildings.sql              # Properties table
-│       ├── rooms.sql                  # Rental units table
+│       ├── buildings.sql              # Properties table with featured/popular fields
+│       ├── rooms.sql                  # Rental units table with featured/popular fields
 │       ├── subscriptions.sql          # Rental agreements table
 │       ├── payments.sql               # Payment tracking table
 │       ├── reviews.sql                # Rating system table
@@ -452,6 +453,16 @@ flutter build ios --release    # iOS release
 - **HTML Iframe Maps**: Optimized Google Maps embedding with coordinate extraction and responsive design
 - **Map Error Handling**: Comprehensive debugging, fallback modes, and user-friendly error recovery
 - **Room Detail Enhancement**: Complete building navigation and map integration with location data inheritance
+
+### **Complete Featured/Popular System**
+- **Database Schema**: Enhanced with `is_featured`, `is_popular`, and `featured_priority` fields for both buildings and rooms
+- **FeaturedService**: Comprehensive service layer with methods for featured/popular listing management and priority-based queries
+- **Smart Badge System**: Visual badges (orange for featured, red for popular, gradient for both) with consistent iconography across all cards
+- **Priority Sorting**: Featured → Popular → Regular ordering in all listing screens with maintained filter functionality
+- **Enhanced Models**: Room and Building models updated with featured fields and FeaturedType enum for type-safe status checking
+- **Performance Optimized**: Database indexes for fast featured/popular queries with minimal performance impact
+- **Admin Ready**: Complete CRUD operations for managing featured status with batch update capabilities
+- **UI Integration**: Seamless badge placement on both building grid cards and horizontal room cards without layout conflicts
 
 ### ⏳ Next Steps
 1. **APST Compatibility Filtering**: Implement tribal and professional access control for buildings and rooms
