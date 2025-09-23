@@ -55,24 +55,35 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           // Background Image with Blur
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/icons/background.jpg'),
-                fit: BoxFit.cover,
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                image: const DecorationImage(
+                  image: AssetImage('assets/icons/background.jpg'),
+                  fit: BoxFit.cover,
+                ),
+                // Fallback gradient if image fails
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.primaryBlue.withValues(alpha: 0.8),
+                    AppColors.primaryBlue.withValues(alpha: 0.6),
+                  ],
+                ),
               ),
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.3),
-                      Colors.black.withValues(alpha: 0.6),
-                    ],
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.3),
+                        Colors.black.withValues(alpha: 0.6),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -80,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
 
           // Main Content
-          Expanded(
+          Positioned.fill(
             child: SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
               child: Center(
@@ -163,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
 
           // Search Section
-          const Expanded(child: SearchSection()),
+          const SearchSection(),
         ],
       ),
     );
@@ -196,6 +207,20 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Image.asset(
                 'assets/icons/logoside.png',
                 fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  // Fallback if logo image fails to load
+                  return Container(
+                    alignment: Alignment.center,
+                    child: Text(
+                      'MEYPATO',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryBlue,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
