@@ -76,6 +76,10 @@ meypato/
 │   ├── screens/                       # UI screens by feature
 │   │   ├── splash/                     # App launch screens
 │   │   │   └── splash_screen.dart     # Animated splash screen with auto-navigation
+│   │   ├── onboarding/                 # User onboarding screens
+│   │   │   ├── onboarding_screen.dart  # Main onboarding container with PageView
+│   │   │   ├── onboarding_page.dart    # Reusable individual page widget
+│   │   │   └── onboarding_content.dart # Content data model for 3 pages
 │   │   ├── auth/                      # Authentication screens
 │   │   │   ├── login_screen.dart      # Login with email + Google
 │   │   │   └── register_screen.dart   # User registration
@@ -105,6 +109,7 @@ meypato/
 │   │   ├── featured_service.dart      # Featured/popular listing management with priority-based queries
 │   │   ├── filter_service.dart        # Room filtering and search operations
 │   │   ├── google_auth_service.dart   # Google Sign-In integration
+│   │   ├── onboarding_service.dart    # First-time user onboarding tracking with SharedPreferences
 │   │   ├── profile_document_service.dart # Legal document upload/management with validation
 │   │   ├── profile_photo_service.dart # Profile photo upload with compression and validation
 │   │   ├── profile_service.dart       # Profile CRUD operations with file upload integration
@@ -208,8 +213,15 @@ meypato/
 ```
 App Launch:
 └── Splash Screen (/splash) → Auto-navigation after 3s
-    ├── → /home (if authenticated)
-    └── → /login (if not authenticated)
+    ├── First-time User → /onboarding (3 pages) → /login
+    └── Returning User → /login or /home (if authenticated)
+
+Onboarding Flow:
+└── /onboarding (OnboardingScreen)
+    ├── Page 1: Find Your Home (APST compatibility intro)
+    ├── Page 2: Smart Search (Cultural filtering)
+    └── Page 3: Easy Management (Payment tracking)
+    └── → /login (after completion or skip)
 
 Bottom Navigation:
 ├── Home (index 0) → /home (HomeScreen)
@@ -417,14 +429,25 @@ body: SafeArea(  // This conflicts with extendBody: true
 - **Error Recovery**: Comprehensive error handling with user-friendly feedback
 - **Cross-Platform Support**: Works seamlessly on mobile and web platforms
 
+### **User Onboarding System**
+- **3-Page Walkthrough**: Clean, simple introduction to app features and APST compatibility
+- **First-Time Detection**: SharedPreferences-based tracking for new vs returning users
+- **Smart Navigation**: Automatic routing based on onboarding completion status
+- **Cultural Context**: Introduces APST compatibility and cultural filtering concepts
+- **Skip Functionality**: Users can skip onboarding at any time
+- **Minimal Design**: Clean white background with soft pastel icons, following modern UX patterns
+- **Responsive Layout**: Works seamlessly across all screen sizes without overflow issues
+- **Version Management**: Support for future onboarding updates and tutorial systems
+
 ---
 
 ## User Flow (Tenants)
-1. **Registration** → Profile with APST/profession verification
-2. **Discovery** → Search properties with cultural compatibility filtering  
-3. **Subscription** → Rent room + digital rental agreement
-4. **Payment** → Monthly rent tracking and payment history
-5. **Reviews** → Rate buildings based on tenancy experience
+1. **Onboarding** → 3-page walkthrough introducing APST compatibility and features
+2. **Registration** → Profile with APST/profession verification
+3. **Discovery** → Search properties with cultural compatibility filtering
+4. **Subscription** → Rent room + digital rental agreement
+5. **Payment** → Monthly rent tracking and payment history
+6. **Reviews** → Rate buildings based on tenancy experience
 
 ## Important Notes
 - **Tenant-focused platform** (NOT property listing app)
@@ -451,11 +474,12 @@ flutter build ios --release    # iOS release
 ### ✅ Completed Features
 - **Foundation**: Flutter project setup + Supabase integration
 - **Professional Splash Screen**: Animated brand experience with auto-navigation and theme-responsive design
+- **User Onboarding System**: 3-page walkthrough with APST introduction, first-time user detection, and smart navigation
 - **Authentication**: Email/password + Google Sign-In + auth guards
 - **UI/Navigation**: Beautiful drawer + compact floating blue bottom navigation + light/dark themes
 - **Profile Management**: Complete CRUD with state management
 - **Data Models**: 10 models matching database schema (including RoomDetail)
-- **Core Screens**: Login, Register, Home, Rooms (formerly Rent), Building, Favorites, Profile, Settings
+- **Core Screens**: Login, Register, Home, Rooms (formerly Rent), Building, Favorites, Profile, Settings, Onboarding
 - **Room Detail Screen**: Complete room detail view with photo gallery, amenities, owner info
 - **Building Screen**: Complete building listings with grid layout, search, and advanced filtering
 - **Building Detail Screen**: Enhanced detail view with full-width location section, map integration, and rooms display

@@ -17,27 +17,38 @@ import '../screens/building/building_detail_screen.dart';
 import '../screens/building/building_room_detail_screen.dart';
 import '../screens/favorites/favorites_screen.dart';
 import '../screens/location/location_picker_screen.dart';
+import '../screens/onboarding/onboarding_screen.dart';
 import '../services/auth_service.dart';
+import '../services/onboarding_service.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/splash',
     redirect: (context, state) {
       final isAuthenticated = AuthService.isAuthenticated;
+      final hasCompletedOnboarding = OnboardingService.hasCompletedOnboarding;
       final isLoggingIn = state.matchedLocation == '/login';
       final isRegistering = state.matchedLocation == '/signup';
       final isSplash = state.matchedLocation == '/splash';
+      final isOnboarding = state.matchedLocation == '/onboarding';
 
       // Allow splash screen to handle its own navigation
       if (isSplash) {
         return null;
       }
 
-      if (!isAuthenticated && !isLoggingIn && !isRegistering) {
+      // First-time user flow: redirect to onboarding if not completed
+      if (!hasCompletedOnboarding && !isOnboarding && !isSplash) {
+        return '/onboarding';
+      }
+
+      // If onboarding is completed but user not authenticated, go to login
+      if (hasCompletedOnboarding && !isAuthenticated && !isLoggingIn && !isRegistering && !isOnboarding) {
         return '/login';
       }
 
-      if (isAuthenticated && (isLoggingIn || isRegistering)) {
+      // If authenticated and trying to access login/register, redirect to home
+      if (isAuthenticated && (isLoggingIn || isRegistering || isOnboarding)) {
         return '/home';
       }
 
@@ -49,6 +60,11 @@ class AppRouter {
         path: '/splash',
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
         path: '/login',
@@ -172,6 +188,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
 // Route names for easy reference
 class RouteNames {
   static const String splash = 'splash';
+  static const String onboarding = 'onboarding';
   static const String login = 'login';
   static const String signup = 'signup';
   static const String home = 'home';
@@ -191,6 +208,7 @@ class RouteNames {
 // Route paths for easy reference
 class RoutePaths {
   static const String splash = '/splash';
+  static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String signup = '/signup';
   static const String home = '/home';

@@ -6,15 +6,19 @@ import 'common/router.dart';
 import 'themes/theme_provider.dart';
 import 'providers/profile_provider.dart';
 import 'providers/favorites_provider.dart';
+import 'services/onboarding_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await Supabase.initialize(
     url: SupabaseConfig.projectUrl,
     anonKey: SupabaseConfig.anonKey,
   );
-  
+
+  // Initialize OnboardingService
+  await OnboardingService.initialize();
+
   runApp(
     MultiProvider(
       providers: [
