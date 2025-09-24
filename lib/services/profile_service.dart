@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';
+import 'profile_photo_service.dart';
+import 'profile_document_service.dart';
 
 class ProfileService {
   static final _supabase = Supabase.instance.client;
@@ -138,81 +141,233 @@ class ProfileService {
     }
   }
 
-  // Upload profile photo
-  static Future<String> uploadProfilePhoto(File file, String fileName) async {
+  // Upload profile photo using Bunny.net
+  static Future<String?> updateProfilePhoto({
+    required String userId,
+    required File imageFile,
+    String? currentPhotoUrl,
+  }) async {
     try {
-      final user = _supabase.auth.currentUser;
-      if (user == null) throw Exception('User not authenticated');
+      final photoUrl = await ProfilePhotoService.uploadProfilePhoto(
+        imageFile: imageFile,
+        userId: userId,
+        currentPhotoUrl: currentPhotoUrl,
+      );
 
-      await _supabase.storage
-          .from('profile-photos')
-          .uploadBinary('${user.id}/$fileName', await file.readAsBytes());
+      if (photoUrl != null) {
+        // Update database with new photo URL
+        await _supabase
+            .from('profiles')
+            .update({
+              'photo_url': photoUrl,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('id', userId);
+      }
 
-      final publicUrl = _supabase.storage
-          .from('profile-photos')
-          .getPublicUrl('${user.id}/$fileName');
-
-      // Update profile with photo URL
-      await _supabase
-          .from('profiles')
-          .update({'photo_url': publicUrl})
-          .eq('id', user.id);
-
-      return publicUrl;
+      return photoUrl;
     } catch (e) {
-      throw Exception('Failed to upload profile photo: $e');
+      throw Exception('Failed to update profile photo: $e');
     }
   }
 
-  // Upload identification document
-  static Future<String> uploadIdentificationDocument(File file, String fileName) async {
+  // Upload profile photo using XFile (for mobile image picker)
+  static Future<String?> updateProfilePhotoMobile({
+    required String userId,
+    required XFile imageFile,
+    String? currentPhotoUrl,
+  }) async {
     try {
-      final user = _supabase.auth.currentUser;
-      if (user == null) throw Exception('User not authenticated');
+      final photoUrl = await ProfilePhotoService.uploadProfilePhotoMobile(
+        imageFile: imageFile,
+        userId: userId,
+        currentPhotoUrl: currentPhotoUrl,
+      );
 
-      await _supabase.storage
-          .from('identification-documents')
-          .uploadBinary('${user.id}/$fileName', await file.readAsBytes());
+      if (photoUrl != null) {
+        // Update database with new photo URL
+        await _supabase
+            .from('profiles')
+            .update({
+              'photo_url': photoUrl,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('id', userId);
+      }
 
-      final publicUrl = _supabase.storage
-          .from('identification-documents')
-          .getPublicUrl('${user.id}/$fileName');
-
-      // Update profile with identification file URL
-      await _supabase
-          .from('profiles')
-          .update({'identification_file_url': publicUrl})
-          .eq('id', user.id);
-
-      return publicUrl;
+      return photoUrl;
     } catch (e) {
-      throw Exception('Failed to upload identification document: $e');
+      throw Exception('Failed to update profile photo: $e');
     }
   }
 
-  // Upload police verification document
-  static Future<String> uploadPoliceVerificationDocument(File file, String fileName) async {
+  // Remove profile photo
+  static Future<bool> removeProfilePhoto({
+    required String userId,
+    required String photoUrl,
+  }) async {
     try {
-      final user = _supabase.auth.currentUser;
-      if (user == null) throw Exception('User not authenticated');
+      final success = await ProfilePhotoService.removeProfilePhoto(
+        userId: userId,
+        currentPhotoUrl: photoUrl,
+      );
 
-      await _supabase.storage
-          .from('police-verification-documents')
-          .uploadBinary('${user.id}/$fileName', await file.readAsBytes());
+      if (success) {
+        // Update database to remove photo URL
+        await _supabase
+            .from('profiles')
+            .update({
+              'photo_url': null,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('id', userId);
+      }
 
-      final publicUrl = _supabase.storage
-          .from('police-verification-documents')
-          .getPublicUrl('${user.id}/$fileName');
-
-      // Update profile with police verification file URL
-      await _supabase
-          .from('profiles')
-          .update({'police_verification_file_url': publicUrl})
-          .eq('id', user.id);
-
-      return publicUrl;
+      return success;
     } catch (e) {
-      throw Exception('Failed to upload police verification document: $e');
+      return false;
+    }
+  }
+
+  // Upload identification document using Bunny.net
+  static Future<String?> updateIdentificationDocument({
+    required String userId,
+    required File documentFile,
+    String? currentDocumentUrl,
+  }) async {
+    try {
+      final documentUrl = await ProfileDocumentService.uploadProfileDocument(
+        documentFile: documentFile,
+        userId: userId,
+        documentType: DocumentType.identification,
+        currentDocumentUrl: currentDocumentUrl,
+      );
+
+      if (documentUrl != null) {
+        // Update database with new document URL
+        await _supabase
+            .from('profiles')
+            .update({
+              'identification_file_url': documentUrl,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('id', userId);
+      }
+
+      return documentUrl;
+    } catch (e) {
+      throw Exception('Failed to update identification document: $e');
+    }
+  }
+
+  // Upload police verification document using Bunny.net
+  static Future<String?> updatePoliceVerificationDocument({
+    required String userId,
+    required File documentFile,
+    String? currentDocumentUrl,
+  }) async {
+    try {
+      final documentUrl = await ProfileDocumentService.uploadProfileDocument(
+        documentFile: documentFile,
+        userId: userId,
+        documentType: DocumentType.policeVerification,
+        currentDocumentUrl: currentDocumentUrl,
+      );
+
+      if (documentUrl != null) {
+        // Update database with new document URL
+        await _supabase
+            .from('profiles')
+            .update({
+              'police_verification_file_url': documentUrl,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('id', userId);
+      }
+
+      return documentUrl;
+    } catch (e) {
+      throw Exception('Failed to update police verification document: $e');
+    }
+  }
+
+  // Remove identification document
+  static Future<bool> removeIdentificationDocument({
+    required String userId,
+    required String documentUrl,
+  }) async {
+    try {
+      final success = await ProfileDocumentService.removeProfileDocument(
+        userId: userId,
+        currentDocumentUrl: documentUrl,
+      );
+
+      if (success) {
+        // Update database to remove document URL
+        await _supabase
+            .from('profiles')
+            .update({
+              'identification_file_url': null,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('id', userId);
+      }
+
+      return success;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Remove police verification document
+  static Future<bool> removePoliceVerificationDocument({
+    required String userId,
+    required String documentUrl,
+  }) async {
+    try {
+      final success = await ProfileDocumentService.removeProfileDocument(
+        userId: userId,
+        currentDocumentUrl: documentUrl,
+      );
+
+      if (success) {
+        // Update database to remove document URL
+        await _supabase
+            .from('profiles')
+            .update({
+              'police_verification_file_url': null,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('id', userId);
+      }
+
+      return success;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Complete cleanup when deleting user profile
+  static Future<void> cleanupUserFiles({
+    required String userId,
+    String? photoUrl,
+    String? identificationUrl,
+    String? policeVerificationUrl,
+  }) async {
+    try {
+      // Cleanup profile photo
+      if (photoUrl != null && photoUrl.isNotEmpty) {
+        await ProfilePhotoService.cleanupUserPhotos(userId, photoUrl);
+      }
+
+      // Cleanup profile documents
+      await ProfileDocumentService.cleanupUserDocuments(
+        userId,
+        identificationUrl: identificationUrl,
+        policeVerificationUrl: policeVerificationUrl,
+      );
+    } catch (e) {
+      // Handle cleanup errors silently
     }
   }
 

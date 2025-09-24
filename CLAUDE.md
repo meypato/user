@@ -59,7 +59,8 @@ meypato/
 │   ├── common/                        # Shared utilities and routing
 │   │   └── router.dart                # GoRouter configuration
 │   ├── configs/                       # App configuration files
-│   │   └── supabase_config.dart       # Supabase connection setup
+│   │   ├── supabase_config.dart       # Supabase connection setup
+│   │   └── bunny_config.dart          # Bunny.net CDN storage configuration
 │   ├── models/                        # Data models and entities
 │   │   ├── building.dart              # Building/Property model with featured/popular fields
 │   │   ├── enums.dart                 # All enums (UserRole, APST, FeaturedType, etc.)
@@ -91,18 +92,22 @@ meypato/
 │   │   │   └── location_picker_screen.dart # Full-page city selection with search
 │   │   ├── profile/                   # User profile screens
 │   │   │   ├── profile_screen.dart    # Profile overview with drawer + bottom nav
-│   │   │   └── profile_detail_screen.dart # Profile editing
+│   │   │   ├── profile_edit_screen.dart # Profile editing with photo/document upload
+│   │   │   └── profile_view_screen.dart # Profile detail view with document viewer
 │   │   └── settings/                  # Settings screens
 │   │       └── settings_screen.dart   # App preferences
 │   ├── services/                      # Business logic and API services
 │   │   ├── auth_service.dart          # Email/password authentication
 │   │   ├── building_filter_service.dart # Building filtering and search operations
+│   │   ├── bunny_storage_service.dart # Core Bunny.net CDN file upload/delete operations
 │   │   ├── city_service.dart          # City/location database operations
 │   │   ├── favorites_service.dart     # Complete favorites CRUD operations with batch support
 │   │   ├── featured_service.dart      # Featured/popular listing management with priority-based queries
 │   │   ├── filter_service.dart        # Room filtering and search operations
 │   │   ├── google_auth_service.dart   # Google Sign-In integration
-│   │   ├── profile_service.dart       # Profile CRUD operations
+│   │   ├── profile_document_service.dart # Legal document upload/management with validation
+│   │   ├── profile_photo_service.dart # Profile photo upload with compression and validation
+│   │   ├── profile_service.dart       # Profile CRUD operations with file upload integration
 │   │   └── room_service.dart          # Room/rental data operations with search filters and building location data
 │   ├── providers/                     # State management providers
 │   │   ├── favorites_provider.dart    # Favorites state management with real-time sync
@@ -402,6 +407,16 @@ body: SafeArea(  // This conflicts with extendBody: true
 - **Error Resilient**: Graceful fallback if logo asset is missing
 - **Professional Animations**: Staggered fade-in and elastic scale with proper timing curves
 
+### **Bunny.net Storage Integration**
+- **CDN Configuration**: Complete Bunny.net CDN setup with storage paths and validation rules
+- **Core Storage Service**: Comprehensive file upload, delete, and validation with atomic operations
+- **Profile Photo Management**: Mobile-optimized photo upload with compression and validation
+- **Legal Document Handling**: Identification and police verification document upload with proper naming
+- **File Validation**: Size limits, format checking, and security validation for all uploads
+- **Atomic Operations**: Replace existing files (upload new + delete old) to prevent orphaned files
+- **Error Recovery**: Comprehensive error handling with user-friendly feedback
+- **Cross-Platform Support**: Works seamlessly on mobile and web platforms
+
 ---
 
 ## User Flow (Tenants)
@@ -471,6 +486,9 @@ flutter build ios --release    # iOS release
 - **HTML Iframe Maps**: Optimized Google Maps embedding with coordinate extraction and responsive design
 - **Map Error Handling**: Comprehensive debugging, fallback modes, and user-friendly error recovery
 - **Room Detail Enhancement**: Complete building navigation and map integration with location data inheritance
+- **Bunny.net Storage Integration**: Complete file upload system for profile photos and legal documents
+- **Profile Enhancement**: Photo upload, document management, and browser-based document viewing
+- **File Management**: Comprehensive upload, validation, and cleanup operations with Supabase integration
 
 ### **Complete Featured/Popular System**
 - **Database Schema**: Enhanced with `is_featured`, `is_popular`, and `featured_priority` fields for both buildings and rooms
@@ -486,7 +504,7 @@ flutter build ios --release    # iOS release
 1. **APST Compatibility Filtering**: Implement tribal and professional access control for buildings and rooms
 2. **Subscription System**: Rental agreements and payments
 3. **Reviews**: Rating system for buildings
-4. **Image Upload**: Photo management for properties/profiles
+4. **Property Image Management**: Photo management for building/room listings (owner/agent features)
 5. **Notification System**: Push notifications and in-app alerts
 6. **Enhanced Search**: Advanced filtering with APST/profession compatibility
 

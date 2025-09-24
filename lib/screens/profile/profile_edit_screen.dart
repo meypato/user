@@ -1,9 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:meypato/services/profile_document_service.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../themes/app_colour.dart';
 import '../../models/enums.dart';
 import '../../models/reference_models.dart' as ref;
 import '../../providers/profile_provider.dart';
+import '../../services/profile_service.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -36,6 +41,22 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   ref.Tribe? _selectedTribe;
 
   bool _isLoading = false;
+
+  // Photo and document upload variables
+  File? _selectedPhoto;
+  XFile? _selectedPhotoXFile;
+  bool _photoChanged = false;
+  bool _isUploadingPhoto = false;
+
+  File? _selectedIdDocument;
+  bool _idDocumentChanged = false;
+  bool _isUploadingId = false;
+
+  File? _selectedPoliceDocument;
+  bool _policeDocumentChanged = false;
+  bool _isUploadingPolice = false;
+
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -219,6 +240,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Profile Photo Section
+                  _buildProfilePhotoSection(profileProvider, isDark),
+                  const SizedBox(height: 16),
+
                   // Contact Information
                   _buildSectionCard(
                     title: 'Contact Information',
@@ -400,6 +425,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+
+                  // Legal Documents Section
+                  _buildDocumentsSection(profileProvider, isDark),
                   const SizedBox(height: 24),
 
                   // Save Button
@@ -617,6 +646,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // First save the profile data
       final success = profileProvider.hasProfile
           ? await profileProvider.updateProfile(
               fullName: _fullNameController.text,
@@ -652,22 +682,127 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               emergencyContactPhone: _emergencyPhoneController.text,
             );
 
-      if (mounted) {
-        if (success) {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Profile saved successfully!'),
-              backgroundColor: AppColors.success,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
-        } else {
-          _showErrorSnackBar('Failed to save profile');
+      if (!success) {
+        _showErrorSnackBar('Failed to save profile');
+        return;
+      }
+
+      // Upload files if changed and profile save was successful
+      final profile = profileProvider.profile;
+      if (profile != null) {
+        // Upload profile photo if changed
+        if (_photoChanged) {
+          setState(() => _isUploadingPhoto = true);
+
+          try {
+            if (_selectedPhoto != null && _selectedPhotoXFile != null) {
+              final photoUrl = await ProfileService.updateProfilePhotoMobile(
+                userId: profile.id,
+                imageFile: _selectedPhotoXFile!,
+                currentPhotoUrl: profile.photoUrl,
+              );
+
+              if (photoUrl != null) {
+                // Update profile in provider with new photo URL
+                await profileProvider.loadProfile(); // Refresh to get updated data
+              }
+            } else if (_selectedPhoto == null && profile.photoUrl != null) {
+              // Remove photo
+              final removed = await ProfileService.removeProfilePhoto(
+                userId: profile.id,
+                photoUrl: profile.photoUrl!,
+              );
+
+              if (removed) {
+                await profileProvider.loadProfile(); // Refresh to get updated data
+              }
+            }
+          } catch (e) {
+            _showErrorSnackBar('Failed to update profile photo: $e');
+          } finally {
+            setState(() => _isUploadingPhoto = false);
+          }
         }
+
+        // Upload identification document if changed
+        if (_idDocumentChanged) {
+          setState(() => _isUploadingId = true);
+
+          try {
+            if (_selectedIdDocument != null) {
+              final documentUrl = await ProfileService.updateIdentificationDocument(
+                userId: profile.id,
+                documentFile: _selectedIdDocument!,
+                currentDocumentUrl: profile.identificationFileUrl,
+              );
+
+              if (documentUrl != null) {
+                await profileProvider.loadProfile(); // Refresh to get updated data
+              }
+            } else if (_selectedIdDocument == null && profile.identificationFileUrl != null) {
+              // Remove document
+              final removed = await ProfileService.removeIdentificationDocument(
+                userId: profile.id,
+                documentUrl: profile.identificationFileUrl!,
+              );
+
+              if (removed) {
+                await profileProvider.loadProfile(); // Refresh to get updated data
+              }
+            }
+          } catch (e) {
+            _showErrorSnackBar('Failed to update identification document: $e');
+          } finally {
+            setState(() => _isUploadingId = false);
+          }
+        }
+
+        // Upload police verification document if changed
+        if (_policeDocumentChanged) {
+          setState(() => _isUploadingPolice = true);
+
+          try {
+            if (_selectedPoliceDocument != null) {
+              final documentUrl = await ProfileService.updatePoliceVerificationDocument(
+                userId: profile.id,
+                documentFile: _selectedPoliceDocument!,
+                currentDocumentUrl: profile.policeVerificationFileUrl,
+              );
+
+              if (documentUrl != null) {
+                await profileProvider.loadProfile(); // Refresh to get updated data
+              }
+            } else if (_selectedPoliceDocument == null && profile.policeVerificationFileUrl != null) {
+              // Remove document
+              final removed = await ProfileService.removePoliceVerificationDocument(
+                userId: profile.id,
+                documentUrl: profile.policeVerificationFileUrl!,
+              );
+
+              if (removed) {
+                await profileProvider.loadProfile(); // Refresh to get updated data
+              }
+            }
+          } catch (e) {
+            _showErrorSnackBar('Failed to update police verification document: $e');
+          } finally {
+            setState(() => _isUploadingPolice = false);
+          }
+        }
+      }
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Profile updated successfully!'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -693,5 +828,405 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         ),
       );
     }
+  }
+
+  // Build Profile Photo Section
+  Widget _buildProfilePhotoSection(ProfileProvider profileProvider, bool isDark) {
+    final profile = profileProvider.profile;
+    final currentPhotoUrl = profile?.photoUrl;
+
+    return _buildSectionCard(
+      title: 'Profile Photo',
+      isDark: isDark,
+      children: [
+        Row(
+          children: [
+            // Photo Display
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  width: 2,
+                ),
+              ),
+              child: ClipOval(
+                child: _selectedPhoto != null
+                    ? Image.file(
+                        _selectedPhoto!,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                      )
+                    : currentPhotoUrl != null && currentPhotoUrl.isNotEmpty
+                        ? Image.network(
+                            currentPhotoUrl,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: 80,
+                                height: 80,
+                                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                                child: Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                ),
+                              );
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                width: 80,
+                                height: 80,
+                                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                                child: const Center(
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              );
+                            },
+                          )
+                        : Container(
+                            width: 80,
+                            height: 80,
+                            color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                            child: Icon(
+                              Icons.person,
+                              size: 40,
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            ),
+                          ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Upload Buttons
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Profile Photo',
+                    style: TextStyle(
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Max 2MB • JPG, PNG supported',
+                    style: TextStyle(
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _isUploadingPhoto ? null : _pickProfilePhoto,
+                          icon: _isUploadingPhoto
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.camera_alt, size: 16),
+                          label: Text(_isUploadingPhoto ? 'Uploading...' : 'Change'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryBlue,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (currentPhotoUrl != null || _selectedPhoto != null)
+                        ElevatedButton.icon(
+                          onPressed: _isUploadingPhoto ? null : _removeProfilePhoto,
+                          icon: const Icon(Icons.delete, size: 16),
+                          label: const Text('Remove'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.error,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // Build Documents Section
+  Widget _buildDocumentsSection(ProfileProvider profileProvider, bool isDark) {
+    final profile = profileProvider.profile;
+
+    return _buildSectionCard(
+      title: 'Legal Documents',
+      isDark: isDark,
+      children: [
+        // Identification Document
+        _buildDocumentRow(
+          title: 'Identification Document',
+          description: 'Upload government-issued ID (Aadhaar, PAN, Passport, etc.)',
+          currentUrl: profile?.identificationFileUrl,
+          selectedFile: _selectedIdDocument,
+          isUploading: _isUploadingId,
+          onPick: () => _pickDocument(DocumentType.identification),
+          onRemove: () => _removeDocument(DocumentType.identification),
+          isDark: isDark,
+        ),
+        const SizedBox(height: 16),
+        // Police Verification Document
+        _buildDocumentRow(
+          title: 'Police Verification Certificate',
+          description: 'Upload police verification certificate for rental eligibility',
+          currentUrl: profile?.policeVerificationFileUrl,
+          selectedFile: _selectedPoliceDocument,
+          isUploading: _isUploadingPolice,
+          onPick: () => _pickDocument(DocumentType.policeVerification),
+          onRemove: () => _removeDocument(DocumentType.policeVerification),
+          isDark: isDark,
+        ),
+      ],
+    );
+  }
+
+  // Build Document Row
+  Widget _buildDocumentRow({
+    required String title,
+    required String description,
+    String? currentUrl,
+    File? selectedFile,
+    required bool isUploading,
+    required VoidCallback onPick,
+    required VoidCallback onRemove,
+    required bool isDark,
+  }) {
+    final hasDocument = currentUrl != null && currentUrl.isNotEmpty || selectedFile != null;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.backgroundDarkSecondary : AppColors.backgroundSecondary,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                hasDocument ? Icons.check_circle : Icons.upload_file,
+                color: hasDocument ? AppColors.success : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (selectedFile != null)
+            Container(
+              padding: const EdgeInsets.all(8),
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.insert_drive_file, size: 16, color: AppColors.success),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      selectedFile.path.split('/').last,
+                      style: const TextStyle(
+                        color: AppColors.success,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: isUploading ? null : onPick,
+                  icon: isUploading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.upload_file, size: 16),
+                  label: Text(
+                    isUploading
+                        ? 'Uploading...'
+                        : hasDocument
+                            ? 'Replace'
+                            : 'Upload',
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              if (hasDocument) ...[
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: isUploading ? null : onRemove,
+                  icon: const Icon(Icons.delete, size: 16),
+                  label: const Text('Remove'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Photo Upload Methods
+  Future<void> _pickProfilePhoto() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        final File imageFile = File(image.path);
+
+        // Basic validation (we'll let the service handle detailed validation)
+        if (imageFile.lengthSync() <= 2 * 1024 * 1024) { // 2MB limit
+          setState(() {
+            _selectedPhoto = imageFile;
+            _selectedPhotoXFile = image;
+            _photoChanged = true;
+          });
+        } else {
+          _showErrorSnackBar('Please select a valid image file (max 2MB, JPG/PNG)');
+        }
+      }
+    } catch (e) {
+      _showErrorSnackBar('Failed to select image: $e');
+    }
+  }
+
+  Future<void> _removeProfilePhoto() async {
+    setState(() {
+      _selectedPhoto = null;
+      _selectedPhotoXFile = null;
+      _photoChanged = true;
+    });
+  }
+
+  // Document Upload Methods
+  Future<void> _pickDocument(DocumentType documentType) async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final File file = File(result.files.single.path!);
+
+        if (file.lengthSync() <= 10 * 1024 * 1024) { // 10MB limit
+          setState(() {
+            if (documentType == DocumentType.identification) {
+              _selectedIdDocument = file;
+              _idDocumentChanged = true;
+            } else {
+              _selectedPoliceDocument = file;
+              _policeDocumentChanged = true;
+            }
+          });
+        } else {
+          _showErrorSnackBar('Invalid document file. Max size 10MB, PDF/DOC/DOCX/JPG/PNG supported.');
+        }
+      }
+    } catch (e) {
+      _showErrorSnackBar('Failed to pick document: $e');
+    }
+  }
+
+  Future<void> _removeDocument(DocumentType documentType) async {
+    setState(() {
+      if (documentType == DocumentType.identification) {
+        _selectedIdDocument = null;
+        _idDocumentChanged = true;
+      } else {
+        _selectedPoliceDocument = null;
+        _policeDocumentChanged = true;
+      }
+    });
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../themes/app_colour.dart';
 import '../../providers/profile_provider.dart';
 
@@ -454,9 +455,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
           ),
           if (hasDocument)
             IconButton(
-              onPressed: () {
-                // TODO: View document
-              },
+              onPressed: () => _openDocument(documentUrl!),
               icon: Icon(
                 Icons.visibility,
                 color: AppColors.primaryBlue,
@@ -551,6 +550,39 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
         return Icons.error;
       default:
         return Icons.help;
+    }
+  }
+
+  // Open document in browser
+  Future<void> _openDocument(String documentUrl) async {
+    try {
+      final uri = Uri.parse(documentUrl);
+
+      // Open directly in external browser
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (e) {
+      if (mounted) {
+        _showErrorSnackBar('Failed to open document. Please check if you have a browser installed.');
+      }
+    }
+  }
+
+  // Show error snackbar
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
     }
   }
 }
