@@ -98,7 +98,8 @@ meypato/
 │   │   ├── profile/                   # User profile screens
 │   │   │   ├── profile_screen.dart    # Profile overview with drawer + bottom nav
 │   │   │   ├── profile_edit_screen.dart # Profile editing with photo/document upload
-│   │   │   └── profile_view_screen.dart # Profile detail view with document viewer
+│   │   │   ├── profile_view_screen.dart # Profile detail view with document viewer
+│   │   │   └── profile_complete_screen.dart # Profile completion with step-by-step wizard
 │   │   ├── settings/                  # Settings screens
 │   │   │   └── settings_screen.dart   # App preferences
 │   │   └── contact/                   # Contact and support screens
@@ -113,6 +114,7 @@ meypato/
 │   │   ├── filter_service.dart        # Room filtering and search operations
 │   │   ├── google_auth_service.dart   # Google Sign-In integration
 │   │   ├── onboarding_service.dart    # First-time user onboarding tracking with SharedPreferences
+│   │   ├── profile_completion_service.dart # Profile completion tracking and validation
 │   │   ├── profile_document_service.dart # Legal document upload/management with validation
 │   │   ├── profile_photo_service.dart # Profile photo upload with compression and validation
 │   │   ├── profile_service.dart       # Profile CRUD operations with file upload integration
@@ -134,6 +136,10 @@ meypato/
 │   │   ├── filter_modal.dart          # Room filter system with beautiful gradient design
 │   │   ├── location_section.dart      # Database-connected user location display with city picker
 │   │   ├── map_widget.dart            # Interactive Google Maps WebView widget with popup functionality
+│   │   ├── profile_completion_banner.dart # Profile completion encouragement banner for homepage/profile
+│   │   ├── profile_required_banner.dart # Profile completion required banner for rent/building pages
+│   │   ├── profile_step_indicator.dart # Step progress indicator for profile completion wizard
+│   │   ├── complete_profile_popup.dart # Profile completion popup modal for user guidance
 │   │   ├── rent_item_card.dart        # Horizontal room card with photo and details
 │   │   ├── search_section.dart        # Dynamic search form with real room types, occupancy, and price data
 │   │   └── theme_toggle_button.dart   # Theme switching widgets
@@ -456,6 +462,18 @@ body: SafeArea(  // This conflicts with extendBody: true
 - **Error Recovery**: Robust error handling with user-friendly feedback for failed launches
 - **Cross-Platform Compatibility**: Works reliably across different Android versions and configurations
 
+### **Profile Completion System**
+- **Smart Profile Filtering**: FeaturedService automatically filters listings based on profile completion status
+- **Completion Tracking Service**: ProfileCompletionService validates required profile fields for rental eligibility
+- **Multi-level Banners**: Different banners for encouraging completion vs requiring completion
+- **Homepage Banner**: ProfileCompletionBanner encourages incomplete profiles to complete setup
+- **Profile Page Banner**: Same encouraging banner integrated into profile screen
+- **Listing Page Banners**: ProfileRequiredBanner explains why listings are empty for incomplete profiles
+- **Step-by-Step Wizard**: ProfileCompleteScreen with progress indicators and guided setup
+- **Keyboard UX**: Automatic keyboard dismissal on form navigation for better mobile experience
+- **Smart Defaults**: Pre-selected state options with auto-loading city dropdowns
+- **Route Integration**: Complete navigation flow from banners to profile completion wizard
+
 ---
 
 ## User Flow (Tenants)
@@ -531,6 +549,7 @@ flutter build ios --release    # iOS release
 - **Profile Enhancement**: Photo upload, document management, and browser-based document viewing
 - **File Management**: Comprehensive upload, validation, and cleanup operations with Supabase integration
 - **Complete Contact System**: Green floating action button, contact screen with social media integration, smart URL launching with fallbacks, and comprehensive Android manifest support
+- **Profile Completion System**: Smart profile validation, completion banners, profile filtering for listings, step-by-step completion wizard with progress indicators and keyboard optimization
 
 ### **Complete Google OAuth Integration**
 - **Automatic Profile Creation**: Google OAuth users automatically get profiles table records with required fields

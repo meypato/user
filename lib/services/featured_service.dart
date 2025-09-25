@@ -123,8 +123,14 @@ class FeaturedService {
     String? cityId,
     RoomType? roomType,
     double? maxFee,
+    bool? checkProfileComplete,
   }) async {
     try {
+      // Return empty list if profile is incomplete (excluding documents)
+      if (checkProfileComplete == false) {
+        return [];
+      }
+
       var query = _supabase
           .from('rooms')
           .select('''
@@ -177,8 +183,14 @@ class FeaturedService {
     int offset = 0,
     String? cityId,
     BuildingType? buildingType,
+    bool? checkProfileComplete,
   }) async {
     try {
+      // Return empty list if profile is incomplete (excluding documents)
+      if (checkProfileComplete == false) {
+        return [];
+      }
+
       var query = _supabase
           .from('buildings')
           .select('''

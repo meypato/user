@@ -107,6 +107,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             _selectedState = profileProvider.states.firstWhere(
               (state) => state.id == profile.stateId,
             );
+            // Auto-load cities when state is found
+            if (_selectedState != null) {
+              profileProvider.loadCitiesForState(_selectedState!.id);
+            }
           } catch (e) {
             _selectedState = null;
           }

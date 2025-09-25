@@ -44,14 +44,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
         fullName: _fullNameController.text.trim(),
       );
 
-      if (response.user != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Registration successful! Welcome to Meypato!'),
-            backgroundColor: Colors.green,
-          ),
+      if (response.user != null) {
+        // Create profile record for email/password users
+        await _googleAuthService.createOrUpdateProfile(
+          response.user!,
+          fullName: _fullNameController.text.trim(),
         );
-        context.go(RoutePaths.home);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Registration successful! Welcome to Meypato!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          context.go(RoutePaths.home);
+        }
       }
     } catch (e) {
       if (mounted) {

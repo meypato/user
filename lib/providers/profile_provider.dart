@@ -40,6 +40,13 @@ class ProfileProvider extends ChangeNotifier {
 
     try {
       _profile = await ProfileService.getCurrentUserProfile();
+
+      // If profile not found, retry once after 1 second (for new registrations)
+      if (_profile == null) {
+        await Future.delayed(const Duration(seconds: 1));
+        _profile = await ProfileService.getCurrentUserProfile();
+      }
+
       notifyListeners();
     } catch (e) {
       _setError(e.toString());

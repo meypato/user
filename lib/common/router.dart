@@ -9,6 +9,7 @@ import '../screens/home/home_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/profile_view_screen.dart';
 import '../screens/profile/profile_edit_screen.dart';
+import '../screens/profile/profile_complete_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/rent/rent_screen.dart';
 import '../screens/rent/rent_detail_screen.dart';
@@ -96,6 +97,11 @@ class AppRouter {
             path: 'edit',
             name: 'profile-edit',
             builder: (context, state) => const ProfileEditScreen(),
+          ),
+          GoRoute(
+            path: 'complete',
+            name: 'profile-complete',
+            builder: (context, state) => const ProfileCompleteScreen(),
           ),
         ],
       ),
@@ -201,6 +207,7 @@ class RouteNames {
   static const String profile = 'profile';
   static const String profileView = 'profile-view';
   static const String profileEdit = 'profile-edit';
+  static const String profileComplete = 'profile-complete';
   static const String settings = 'settings';
   static const String rent = 'rent';
   static const String rentDetail = 'rent-detail';
@@ -222,6 +229,7 @@ class RoutePaths {
   static const String profile = '/profile';
   static const String profileView = '/profile/view';
   static const String profileEdit = '/profile/edit';
+  static const String profileComplete = '/profile/complete';
   static const String settings = '/settings';
   static const String rent = '/rent';
   static const String rentDetail = '/rent/:rentId';

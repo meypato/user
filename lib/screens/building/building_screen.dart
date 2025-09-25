@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../models/models.dart' hide State;
 import '../../services/building_filter_service.dart';
 import '../../services/featured_service.dart';
 import '../../services/location_service.dart';
 import '../../themes/app_colour.dart';
+import '../../providers/profile_provider.dart';
 import '../../widgets/bottom_navigation.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/building_item_card.dart';
 import '../../widgets/building_filter_modal.dart';
+import '../../widgets/profile_required_banner.dart';
 
 class BuildingScreen extends StatefulWidget {
   const BuildingScreen({super.key});
@@ -44,6 +47,10 @@ class _BuildingScreenState extends State<BuildingScreen> {
       // Use provided filters or current filters
       final filtersToUse = filters ?? _currentFilters;
 
+      // Check if profile is complete (excluding documents)
+      final profileProvider = context.read<ProfileProvider>();
+      final isProfileComplete = profileProvider.hasProfile && profileProvider.isProfileComplete;
+
       // Load buildings with featured priority (featured first, then popular, then regular)
       final buildings = await FeaturedService.getBuildingsWithFeaturedPriority(
         limit: 50,
@@ -51,6 +58,7 @@ class _BuildingScreenState extends State<BuildingScreen> {
         buildingType: filtersToUse.buildingType != 'any'
             ? BuildingType.fromString(filtersToUse.buildingType)
             : null,
+        checkProfileComplete: isProfileComplete,
       );
 
       setState(() {
@@ -245,42 +253,69 @@ class _BuildingScreenState extends State<BuildingScreen> {
     }
 
     if (_buildings.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(50),
+      return Consumer<ProfileProvider>(
+        builder: (context, profileProvider, child) {
+          // Show profile required banner if profile is incomplete
+          if (profileProvider.hasProfile && !profileProvider.isProfileComplete) {
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 60),
+                    ProfileRequiredBanner(
+                      title: 'Complete Your Profile',
+                      description: 'To view and access building listings, please complete your profile information first.',
+                      buttonText: 'Complete Profile Now',
+                      icon: Icons.apartment_outlined,
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
-              child: Icon(
-                Icons.apartment_outlined,
-                size: 50,
-                color: theme.colorScheme.primary,
-              ),
+            );
+          }
+
+          // Show regular empty state for complete profiles
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: Icon(
+                    Icons.apartment_outlined,
+                    size: 50,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'No buildings available',
+                  style: TextStyle(
+                    color: theme.textTheme.bodyLarge?.color,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Check back later for new listings',
+                  style: TextStyle(
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                    fontSize: 16,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-            Text(
-              'No buildings available',
-              style: TextStyle(
-                color: theme.textTheme.bodyLarge?.color,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Check back later for new listings',
-              style: TextStyle(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       );
     }
 

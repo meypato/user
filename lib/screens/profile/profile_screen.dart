@@ -6,6 +6,7 @@ import '../../providers/profile_provider.dart';
 import '../../common/router.dart';
 import '../../widgets/bottom_navigation.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/profile_completion_banner.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -54,6 +55,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 // Top padding for status bar
                 SizedBox(height: MediaQuery.of(context).padding.top),
+
+                // Profile Completion Banner
+                if (profileProvider.hasProfile && !profileProvider.isProfileComplete && profileProvider.profile != null)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: ProfileCompletionBanner(profile: profileProvider.profile!),
+                  ),
 
                 // Compact Profile Header Section
                 Container(

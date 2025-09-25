@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/models.dart' hide State;
 import '../../services/filter_service.dart';
 import '../../services/featured_service.dart';
 import '../../themes/app_colour.dart';
+import '../../providers/profile_provider.dart';
 import '../../widgets/bottom_navigation.dart';
 import '../../widgets/rent_item_card.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/filter_modal.dart';
+import '../../widgets/profile_required_banner.dart';
 
 class RentScreen extends StatefulWidget {
   final Map<String, String>? searchParams;
@@ -69,6 +72,10 @@ class _RentScreenState extends State<RentScreen> {
       // Use provided filters or current filters
       final filtersToUse = filters ?? _currentFilters;
 
+      // Check if profile is complete (excluding documents)
+      final profileProvider = context.read<ProfileProvider>();
+      final isProfileComplete = profileProvider.hasProfile && profileProvider.isProfileComplete;
+
       // Use featured priority service for better room sorting (featured first, then popular, then regular)
       final rooms = await FeaturedService.getRoomsWithFeaturedPriority(
         limit: 50,
@@ -77,6 +84,7 @@ class _RentScreenState extends State<RentScreen> {
             ? RoomType.fromString(filtersToUse.roomType)
             : null,
         maxFee: filtersToUse.maxPrice,
+        checkProfileComplete: isProfileComplete,
       );
 
       setState(() {
@@ -268,42 +276,69 @@ class _RentScreenState extends State<RentScreen> {
     }
 
     if (_rooms.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(50),
+      return Consumer<ProfileProvider>(
+        builder: (context, profileProvider, child) {
+          // Show profile required banner if profile is incomplete
+          if (profileProvider.hasProfile && !profileProvider.isProfileComplete) {
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 60),
+                    ProfileRequiredBanner(
+                      title: 'Complete Your Profile',
+                      description: 'To view and access room listings, please complete your profile information first.',
+                      buttonText: 'Complete Profile Now',
+                      icon: Icons.home_outlined,
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
-              child: Icon(
-                Icons.home_outlined,
-                size: 50,
-                color: theme.colorScheme.primary,
-              ),
+            );
+          }
+
+          // Show regular empty state for complete profiles
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: Icon(
+                    Icons.home_outlined,
+                    size: 50,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'No rooms available',
+                  style: TextStyle(
+                    color: theme.textTheme.bodyLarge?.color,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Check back later for new listings',
+                  style: TextStyle(
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                    fontSize: 16,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-            Text(
-              'No rooms available',
-              style: TextStyle(
-                color: theme.textTheme.bodyLarge?.color,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Check back later for new listings',
-              style: TextStyle(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       );
     }
 

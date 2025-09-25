@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';
@@ -12,18 +13,33 @@ class ProfileService {
   static Future<Profile?> getCurrentUserProfile() async {
     try {
       final user = _supabase.auth.currentUser;
-      if (user == null) return null;
+      debugPrint('📄 ProfileService: Getting profile for user: ${user?.id ?? 'NULL'}');
 
+      if (user == null) {
+        debugPrint('📄 ProfileService: ❌ No authenticated user found');
+        return null;
+      }
+
+      debugPrint('📄 ProfileService: Querying profiles table for user ${user.id}');
       final response = await _supabase
           .from('profiles')
           .select()
           .eq('id', user.id)
           .maybeSingle();
 
-      if (response == null) return null;
-      
-      return Profile.fromJson(response);
+      debugPrint('📄 ProfileService: Database response: ${response != null ? 'FOUND' : 'NULL'}');
+
+      if (response == null) {
+        debugPrint('📄 ProfileService: ❌ No profile found in database for user ${user.id}');
+        return null;
+      }
+
+      final profile = Profile.fromJson(response);
+      debugPrint('📄 ProfileService: ✅ Profile loaded - Name: ${profile.fullName}, Email: ${profile.email}');
+
+      return profile;
     } catch (e) {
+      debugPrint('📄 ProfileService: ❌ Error fetching profile: $e');
       throw Exception('Failed to fetch profile: $e');
     }
   }
