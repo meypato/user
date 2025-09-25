@@ -8,3 +8,4 @@ export 'payment.dart';
 export 'review.dart';
 export 'reference_models.dart';
 export 'favorite.dart';
+export 'contact.dart';

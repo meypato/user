@@ -262,18 +262,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         isDark: isDark,
                       ),
                       const SizedBox(height: 16),
+                      // Email field is read-only to prevent auth issues
                       _buildTextField(
                         controller: _emailController,
-                        label: 'Email Address',
+                        label: 'Email Address (Read-only)',
                         icon: Icons.email,
                         keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value?.isEmpty ?? true) return 'Required';
-                          if (!RegExp(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$').hasMatch(value!)) {
-                            return 'Invalid email';
-                          }
-                          return null;
-                        },
+                        enabled: false, // Disable email editing to prevent auth conflicts
+                        validator: null, // Remove validation for read-only field
                         isDark: isDark,
                       ),
                     ],
@@ -516,13 +512,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     required bool isDark,
     TextInputType? keyboardType,
     String? Function(String?)? validator,
+    bool enabled = true,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
+      enabled: enabled,
       style: TextStyle(
-        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+        color: enabled
+            ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)
+            : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
         fontSize: 14,
       ),
       decoration: InputDecoration(
@@ -666,7 +666,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             )
           : await profileProvider.createProfile(
               fullName: _fullNameController.text,
-              email: _emailController.text,
+              email: _emailController.text, // Keep email for profile creation
               phone: _phoneController.text,
               stateId: _selectedState!.id,
               cityId: _selectedCity!.id,

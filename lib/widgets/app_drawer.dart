@@ -200,6 +200,16 @@ class AppDrawer extends StatelessWidget {
                     ),
                     _buildBeautifulMenuItem(
                       context,
+                      icon: Icons.support_agent_outlined,
+                      title: 'Contact Us',
+                      color: AppColors.textSecondary,
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.go(RoutePaths.contact);
+                      },
+                    ),
+                    _buildBeautifulMenuItem(
+                      context,
                       icon: Icons.help_outline,
                       title: 'Help & Support',
                       color: AppColors.textSecondary,

@@ -18,6 +18,7 @@ import '../screens/building/building_room_detail_screen.dart';
 import '../screens/favorites/favorites_screen.dart';
 import '../screens/location/location_picker_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
+import '../screens/contact/contact_screen.dart';
 import '../services/auth_service.dart';
 import '../services/onboarding_service.dart';
 
@@ -166,6 +167,11 @@ class AppRouter {
           return LocationPickerScreen(selectedCityId: selectedCityId);
         },
       ),
+      GoRoute(
+        path: '/contact',
+        name: 'contact',
+        builder: (context, state) => const ContactScreen(),
+      ),
     ],
   );
 }
@@ -203,6 +209,7 @@ class RouteNames {
   static const String buildingRoomDetail = 'building-room-detail';
   static const String favorites = 'favorites';
   static const String locationPicker = 'location-picker';
+  static const String contact = 'contact';
 }
 
 // Route paths for easy reference
@@ -223,4 +230,5 @@ class RoutePaths {
   static const String buildingRoomDetail = '/building/:buildingId/room/:roomId';
   static const String favorites = '/favorites';
   static const String locationPicker = '/location-picker';
+  static const String contact = '/contact';
 }

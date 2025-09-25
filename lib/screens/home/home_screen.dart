@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:go_router/go_router.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/bottom_navigation.dart';
 import '../../widgets/location_section.dart';
 import '../../widgets/search_section.dart';
 import '../../themes/app_colour.dart';
+import '../../common/router.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -113,6 +115,19 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.go(RoutePaths.contact),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        elevation: 6,
+        icon: const Icon(Icons.support_agent),
+        label: const Text(
+          'Need Help?',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
       bottomNavigationBar: const CustomBottomNavigation(currentIndex: 0),
     );
@@ -242,7 +257,5 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
-
-
 
 }

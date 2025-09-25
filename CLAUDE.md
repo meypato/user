@@ -63,6 +63,7 @@ meypato/
 │   │   └── bunny_config.dart          # Bunny.net CDN storage configuration
 │   ├── models/                        # Data models and entities
 │   │   ├── building.dart              # Building/Property model with featured/popular fields
+│   │   ├── contact.dart               # Contact information model for support and social media
 │   │   ├── enums.dart                 # All enums (UserRole, APST, FeaturedType, etc.)
 │   │   ├── favorite.dart              # User favorites models for rooms and buildings
 │   │   ├── models.dart                # Barrel export file
@@ -98,8 +99,10 @@ meypato/
 │   │   │   ├── profile_screen.dart    # Profile overview with drawer + bottom nav
 │   │   │   ├── profile_edit_screen.dart # Profile editing with photo/document upload
 │   │   │   └── profile_view_screen.dart # Profile detail view with document viewer
-│   │   └── settings/                  # Settings screens
-│   │       └── settings_screen.dart   # App preferences
+│   │   ├── settings/                  # Settings screens
+│   │   │   └── settings_screen.dart   # App preferences
+│   │   └── contact/                   # Contact and support screens
+│   │       └── contact_screen.dart    # Contact information with social media integration
 │   ├── services/                      # Business logic and API services
 │   │   ├── auth_service.dart          # Email/password authentication
 │   │   ├── building_filter_service.dart # Building filtering and search operations
@@ -113,7 +116,8 @@ meypato/
 │   │   ├── profile_document_service.dart # Legal document upload/management with validation
 │   │   ├── profile_photo_service.dart # Profile photo upload with compression and validation
 │   │   ├── profile_service.dart       # Profile CRUD operations with file upload integration
-│   │   └── room_service.dart          # Room/rental data operations with search filters and building location data
+│   │   ├── room_service.dart          # Room/rental data operations with search filters and building location data
+│   │   └── contact_service.dart       # Contact information retrieval from Supabase database
 │   ├── providers/                     # State management providers
 │   │   ├── favorites_provider.dart    # Favorites state management with real-time sync
 │   │   └── profile_provider.dart      # Profile state with Provider
@@ -155,7 +159,8 @@ meypato/
 │       ├── building_tribe_exceptions.sql     # Tribal access control
 │       ├── building_profession_exceptions.sql # Professional access control
 │       ├── user_favorite_rooms.sql    # User favorites for rooms with RLS
-│       └── user_favorite_buildings.sql # User favorites for buildings with RLS
+│       ├── user_favorite_buildings.sql # User favorites for buildings with RLS
+│       └── contacts.sql               # Contact information table for support team details
 ├── pubspec.yaml                       # Dependencies and configuration
 ├── CLAUDE.md                          # Project documentation (this file)
 ├── CREDENTIALS.md                     # OAuth credentials (gitignored)
@@ -236,7 +241,7 @@ Drawer Navigation:
 ├── Building → /building
 ├── Profile → /profile
 ├── Settings → /settings
-└── Secondary items (Favorites → /favorites, Notifications, Help)
+└── Secondary items (Favorites → /favorites, Contact Us → /contact, Notifications, Help)
 
 Nested Routes:
 └── /rent (RentScreen)
@@ -439,6 +444,18 @@ body: SafeArea(  // This conflicts with extendBody: true
 - **Responsive Layout**: Works seamlessly across all screen sizes without overflow issues
 - **Version Management**: Support for future onboarding updates and tutorial systems
 
+### **Complete Contact System**
+- **Green Floating Action Button**: Prominent "Need Help?" button on homepage for instant access to support
+- **Contact Screen**: Beautiful contact interface with gradient header and organized contact methods
+- **Social Media Integration**: WhatsApp, phone, email, Instagram, Facebook, and YouTube support
+- **Smart URL Launching**: Multiple fallback strategies for opening external apps (WhatsApp Web, Gmail web, etc.)
+- **Phone Number Cleaning**: Automatic formatting for WhatsApp URLs with country code handling
+- **Android Manifest Integration**: Comprehensive intent queries for reliable app launching
+- **Database-Driven**: Contact information stored in Supabase with active/inactive status control
+- **Drawer Navigation**: Easy access via app drawer's secondary navigation section
+- **Error Recovery**: Robust error handling with user-friendly feedback for failed launches
+- **Cross-Platform Compatibility**: Works reliably across different Android versions and configurations
+
 ---
 
 ## User Flow (Tenants)
@@ -513,6 +530,7 @@ flutter build ios --release    # iOS release
 - **Bunny.net Storage Integration**: Complete file upload system for profile photos and legal documents
 - **Profile Enhancement**: Photo upload, document management, and browser-based document viewing
 - **File Management**: Comprehensive upload, validation, and cleanup operations with Supabase integration
+- **Complete Contact System**: Green floating action button, contact screen with social media integration, smart URL launching with fallbacks, and comprehensive Android manifest support
 
 ### **Complete Google OAuth Integration**
 - **Automatic Profile Creation**: Google OAuth users automatically get profiles table records with required fields
