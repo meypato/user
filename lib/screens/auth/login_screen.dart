@@ -69,11 +69,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await _googleAuthService.signInWithGoogle();
-      
+
       if (response.user != null) {
+        // Create or update profile record in database
+        await _googleAuthService.createOrUpdateProfile(response.user!);
+
         // Check if user has complete profile
         final hasCompleteProfile = await _googleAuthService.hasCompleteProfile(response.user);
-        
+
         if (mounted) {
           if (hasCompleteProfile) {
             context.go(RoutePaths.home);

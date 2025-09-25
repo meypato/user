@@ -117,26 +117,60 @@ class GoogleAuthService {
   }) async {
     try {
       debugPrint('💾 Creating/updating profile for user ${user.id}');
-      
+
       // First check if the profile exists
       final profileExists = await _supabase
           .from('profiles')
           .select('id')
           .eq('id', user.id)
           .maybeSingle();
-      
-      final profileData = {
-        'id': user.id,
-        'email': user.email,
-        'full_name': fullName ?? user.userMetadata?['full_name'] ?? user.email?.split('@').first,
-        'phone': phone,
-        'avatar_url': user.userMetadata?['picture'],
-        'updated_at': DateTime.now().toIso8601String(),
-      };
-      
+
       if (profileExists == null) {
-        // Create new profile
-        profileData['created_at'] = DateTime.now().toIso8601String();
+        // Create new profile with required fields
+        // Get default Arunachal Pradesh state and a default city
+        final stateResponse = await _supabase
+            .from('states')
+            .select('id')
+            .eq('name', 'Arunachal Pradesh')
+            .maybeSingle();
+
+        if (stateResponse == null) {
+          throw Exception('Default state (Arunachal Pradesh) not found in database');
+        }
+
+        final stateId = stateResponse['id'];
+
+        // Get a default city for Arunachal Pradesh (use first available)
+        final cityResponse = await _supabase
+            .from('cities')
+            .select('id')
+            .eq('state_id', stateId)
+            .limit(1)
+            .maybeSingle();
+
+        if (cityResponse == null) {
+          throw Exception('No cities found for Arunachal Pradesh in database');
+        }
+
+        final cityId = cityResponse['id'];
+
+        final profileData = {
+          'id': user.id,
+          'full_name': fullName ?? user.userMetadata?['full_name'] ?? user.email?.split('@').first ?? 'User',
+          'email': user.email,
+          'phone': phone,
+          'photo_url': user.userMetadata?['picture'],
+          'state_id': stateId,
+          'city_id': cityId,
+          'role': 'tenant',
+          'country': 'India',
+          'is_verified': false,
+          'verification_state': 'unverified',
+          'is_active': true,
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        };
+
         await _supabase.from('profiles').insert(profileData);
         debugPrint('✅ Created new profile for user ${user.id}');
       } else {
@@ -144,7 +178,8 @@ class GoogleAuthService {
         final updateData = <String, dynamic>{'updated_at': DateTime.now().toIso8601String()};
         if (fullName != null) updateData['full_name'] = fullName;
         if (phone != null) updateData['phone'] = phone;
-        
+        if (user.userMetadata?['picture'] != null) updateData['photo_url'] = user.userMetadata!['picture'];
+
         await _supabase.from('profiles').update(updateData).eq('id', user.id);
         debugPrint('✅ Updated profile for user ${user.id}');
       }
