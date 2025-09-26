@@ -31,16 +31,17 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
-  final _ageController = TextEditingController();
+  final _dateOfBirthController = TextEditingController();
   final _addressLine1Controller = TextEditingController();
   final _addressLine2Controller = TextEditingController();
   final _pincodeController = TextEditingController();
   final _emergencyNameController = TextEditingController();
   final _emergencyPhoneController = TextEditingController();
 
-  // Dropdown selections
+  // Dropdown selections and date selection
   SexType? _selectedSex;
   APSTStatus? _selectedApstStatus;
+  DateTime? _selectedDateOfBirth;
   String? _selectedStateId;
   String? _selectedCityId;
   String? _selectedProfessionId;
@@ -61,7 +62,7 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
     _fullNameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
-    _ageController.dispose();
+    _dateOfBirthController.dispose();
     _addressLine1Controller.dispose();
     _addressLine2Controller.dispose();
     _pincodeController.dispose();
@@ -78,7 +79,10 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
       _fullNameController.text = profile.fullName;
       _phoneController.text = profile.phone ?? '';
       _emailController.text = profile.email ?? '';
-      _ageController.text = profile.age?.toString() ?? '';
+      _selectedDateOfBirth = profile.dateOfBirth;
+      _dateOfBirthController.text = _selectedDateOfBirth != null
+          ? "${_selectedDateOfBirth!.day.toString().padLeft(2, '0')}/${_selectedDateOfBirth!.month.toString().padLeft(2, '0')}/${_selectedDateOfBirth!.year}"
+          : '';
       _addressLine1Controller.text = profile.addressLine1 ?? '';
       _addressLine2Controller.text = profile.addressLine2 ?? '';
       _pincodeController.text = profile.pincode ?? '';
@@ -142,6 +146,37 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
     return _formKeys[_currentStep].currentState?.validate() ?? false;
   }
 
+  Future<void> _selectDateOfBirth() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDateOfBirth ?? DateTime(2000),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now().subtract(const Duration(days: 365 * 18)), // Must be at least 18 years old
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primaryBlue,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null && pickedDate != _selectedDateOfBirth) {
+      setState(() {
+        _selectedDateOfBirth = pickedDate;
+        _dateOfBirthController.text =
+            "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
+
+      });
+    }
+  }
+
   Future<void> _completeProfile() async {
     if (!_validateCurrentStep()) return;
 
@@ -159,7 +194,7 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
       success = await profileProvider.updateProfile(
         fullName: _fullNameController.text,
         phone: _phoneController.text,
-        age: int.tryParse(_ageController.text),
+        dateOfBirth: _selectedDateOfBirth,
         sex: _selectedSex,
         addressLine1: _addressLine1Controller.text,
         addressLine2: _addressLine2Controller.text.isEmpty ? null : _addressLine2Controller.text,
@@ -179,7 +214,7 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
         phone: _phoneController.text,
         stateId: _selectedStateId!,
         cityId: _selectedCityId!,
-        age: int.tryParse(_ageController.text),
+        dateOfBirth: _selectedDateOfBirth,
         sex: _selectedSex,
         addressLine1: _addressLine1Controller.text,
         addressLine2: _addressLine2Controller.text.isEmpty ? null : _addressLine2Controller.text,
@@ -382,54 +417,47 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
             ),
             const SizedBox(height: 16),
 
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _ageController,
-                    decoration: _buildInputDecoration('Age *'),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your age';
-                      }
-                      final age = int.tryParse(value);
-                      if (age == null || age < 18 || age > 120) {
-                        return 'Please enter a valid age (18-120)';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Consumer<ProfileProvider>(
-                    builder: (context, provider, child) {
-                      return DropdownButtonFormField<SexType>(
-                        value: _selectedSex,
-                        decoration: _buildInputDecoration('Gender *'),
-                        items: SexType.values.map((sex) {
-                          return DropdownMenuItem(
-                            value: sex,
-                            child: Text(sex.displayName),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedSex = value;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Please select your gender';
-                          }
-                          return null;
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
+            Consumer<ProfileProvider>(
+              builder: (context, provider, child) {
+                return DropdownButtonFormField<SexType>(
+                  value: _selectedSex,
+                  decoration: _buildInputDecoration('Gender *'),
+                  items: SexType.values.map((sex) {
+                    return DropdownMenuItem(
+                      value: sex,
+                      child: Text(sex.displayName),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedSex = value;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select your gender';
+                    }
+                    return null;
+                  },
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Date of Birth Field
+            TextFormField(
+              controller: _dateOfBirthController,
+              decoration: _buildInputDecoration('Date of Birth *').copyWith(
+                suffixIcon: const Icon(Icons.calendar_today, size: 20),
+              ),
+              readOnly: true,
+              onTap: _selectDateOfBirth,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select your date of birth';
+                }
+                return null;
+              },
             ),
           ],
         ),
@@ -484,9 +512,10 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
                         style: TextStyle(color: Colors.grey),
                       ),
                     ),
-                    // State options
-                    ...provider.states.map((state) {
+                    // State options - ensure unique values
+                    ...provider.states.toSet().map((state) {
                       return DropdownMenuItem(
+                        key: ValueKey('state_${state.id}'),
                         value: state.id,
                         child: Text(state.name),
                       );
@@ -517,8 +546,9 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
                 return DropdownButtonFormField<String>(
                   value: _selectedCityId,
                   decoration: _buildInputDecoration('City *'),
-                  items: provider.cities.map((city) {
+                  items: provider.cities.toSet().map((city) {
                     return DropdownMenuItem(
+                      key: ValueKey('city_${city.id}'),
                       value: city.id,
                       child: Text(city.name),
                     );
@@ -606,8 +636,9 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
                   return DropdownButtonFormField<String>(
                     value: _selectedTribeId,
                     decoration: _buildInputDecoration('Tribe *'),
-                    items: provider.tribes.map((tribe) {
+                    items: provider.tribes.toSet().map((tribe) {
                       return DropdownMenuItem(
+                        key: ValueKey('tribe_${tribe.id}'),
                         value: tribe.id,
                         child: Text(tribe.name),
                       );
@@ -634,8 +665,9 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
                 return DropdownButtonFormField<String>(
                   value: _selectedProfessionId,
                   decoration: _buildInputDecoration('Profession *'),
-                  items: provider.professions.map((profession) {
+                  items: provider.professions.toSet().map((profession) {
                     return DropdownMenuItem(
+                      key: ValueKey('profession_${profession.id}'),
                       value: profession.id,
                       child: Text(profession.name),
                     );

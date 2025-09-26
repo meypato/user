@@ -5,6 +5,7 @@ import '../../widgets/bottom_navigation.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/rent_item_card.dart';
 import '../../widgets/building_item_card.dart';
+import '../../widgets/navigation_wrapper.dart';
 import '../../providers/favorites_provider.dart';
 import '../../services/room_service.dart';
 import '../../services/building_service.dart';
@@ -77,7 +78,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> with TickerProviderSt
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
+    return NavigationWrapper(
+      child: Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       drawer: const AppDrawer(),
       appBar: AppBar(
@@ -106,6 +108,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> with TickerProviderSt
       extendBody: true,
       bottomNavigationBar: const CustomBottomNavigation(
         currentIndex: 3, // Favorites tab index
+      ),
       ),
     );
   }

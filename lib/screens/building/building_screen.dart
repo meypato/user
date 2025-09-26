@@ -12,6 +12,7 @@ import '../../widgets/app_drawer.dart';
 import '../../widgets/building_item_card.dart';
 import '../../widgets/building_filter_modal.dart';
 import '../../widgets/profile_required_banner.dart';
+import '../../widgets/navigation_wrapper.dart';
 
 class BuildingScreen extends StatefulWidget {
   const BuildingScreen({super.key});
@@ -80,7 +81,8 @@ class _BuildingScreenState extends State<BuildingScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
+    return NavigationWrapper(
+      child: Scaffold(
       backgroundColor: theme.colorScheme.surface,
       drawer: const AppDrawer(),
       appBar: AppBar(
@@ -130,6 +132,7 @@ class _BuildingScreenState extends State<BuildingScreen> {
       extendBody: true,
       bottomNavigationBar: const CustomBottomNavigation(
         currentIndex: 2, // Building tab index
+      ),
       ),
     );
   }

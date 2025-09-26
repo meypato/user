@@ -7,6 +7,7 @@ import '../../common/router.dart';
 import '../../widgets/bottom_navigation.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/profile_completion_banner.dart';
+import '../../widgets/navigation_wrapper.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -32,7 +33,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Consumer<ProfileProvider>(
       builder: (context, profileProvider, child) {
-        return Scaffold(
+        return NavigationWrapper(
+          child: Scaffold(
           backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
           drawer: const AppDrawer(),
           appBar: AppBar(
@@ -297,6 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           extendBody: true,
           bottomNavigationBar: const CustomBottomNavigation(
             currentIndex: 4, // Profile tab index
+          ),
           ),
         );
       },

@@ -51,7 +51,7 @@ class ProfileService {
     required String phone,
     required String stateId,
     required String cityId,
-    int? age,
+    DateTime? dateOfBirth,
     SexType? sex,
     String? addressLine1,
     String? addressLine2,
@@ -73,7 +73,7 @@ class ProfileService {
         'phone': phone,
         'state_id': stateId,
         'city_id': cityId,
-        'age': age,
+        'date_of_birth': dateOfBirth?.toIso8601String().split('T')[0], // YYYY-MM-DD format
         'sex': sex?.name,
         'address_line1': addressLine1,
         'address_line2': addressLine2,
@@ -110,7 +110,7 @@ class ProfileService {
     required String profileId,
     String? fullName,
     String? phone,
-    int? age,
+    DateTime? dateOfBirth,
     SexType? sex,
     String? addressLine1,
     String? addressLine2,
@@ -130,7 +130,7 @@ class ProfileService {
 
       if (fullName != null) updateData['full_name'] = fullName;
       if (phone != null) updateData['phone'] = phone;
-      if (age != null) updateData['age'] = age;
+      if (dateOfBirth != null) updateData['date_of_birth'] = dateOfBirth.toIso8601String().split('T')[0];
       if (sex != null) updateData['sex'] = sex.name;
       if (addressLine1 != null) updateData['address_line1'] = addressLine1;
       if (addressLine2 != null) updateData['address_line2'] = addressLine2;

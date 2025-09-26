@@ -7,6 +7,7 @@ import '../../widgets/bottom_navigation.dart';
 import '../../widgets/location_section.dart';
 import '../../widgets/search_section.dart';
 import '../../widgets/profile_completion_banner.dart';
+import '../../widgets/navigation_wrapper.dart';
 import '../../themes/app_colour.dart';
 import '../../common/router.dart';
 import '../../providers/profile_provider.dart';
@@ -116,7 +117,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeScreen(BuildContext context) {
-    return Scaffold(
+    return NavigationWrapper(
+      isHomeScreen: true, // This will show exit confirmation
+      child: Scaffold(
       drawer: const AppDrawer(),
       extendBodyBehindAppBar: true,
       extendBody: true,
@@ -270,6 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       bottomNavigationBar: const CustomBottomNavigation(currentIndex: 0),
+      ),
     );
   }
 

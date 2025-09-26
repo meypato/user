@@ -7,7 +7,7 @@ class Profile {
   final UserRole role;
   final String? identificationFileUrl;
   final String? policeVerificationFileUrl;
-  final int? age;
+  final DateTime? dateOfBirth;
   final SexType? sex;
   final String? tribeId;
   final APSTStatus? apst;
@@ -35,7 +35,7 @@ class Profile {
     required this.role,
     this.identificationFileUrl,
     this.policeVerificationFileUrl,
-    this.age,
+    this.dateOfBirth,
     this.sex,
     this.tribeId,
     this.apst,
@@ -65,7 +65,9 @@ class Profile {
       role: UserRole.fromString(json['role'] as String),
       identificationFileUrl: json['identification_file_url'] as String?,
       policeVerificationFileUrl: json['police_verification_file_url'] as String?,
-      age: json['age'] as int?,
+      dateOfBirth: json['date_of_birth'] != null
+          ? DateTime.parse(json['date_of_birth'] as String)
+          : null,
       sex: json['sex'] != null ? SexType.fromString(json['sex'] as String) : null,
       tribeId: json['tribe_id'] as String?,
       apst: json['apst'] != null ? APSTStatus.fromString(json['apst'] as String) : null,
@@ -96,7 +98,7 @@ class Profile {
       'role': role.name,
       'identification_file_url': identificationFileUrl,
       'police_verification_file_url': policeVerificationFileUrl,
-      'age': age,
+      'date_of_birth': dateOfBirth?.toIso8601String().split('T')[0], // YYYY-MM-DD format
       'sex': sex?.name,
       'tribe_id': tribeId,
       'apst': apst?.databaseValue,
@@ -125,7 +127,7 @@ class Profile {
     UserRole? role,
     String? identificationFileUrl,
     String? policeVerificationFileUrl,
-    int? age,
+    DateTime? dateOfBirth,
     SexType? sex,
     String? tribeId,
     APSTStatus? apst,
@@ -152,7 +154,7 @@ class Profile {
       role: role ?? this.role,
       identificationFileUrl: identificationFileUrl ?? this.identificationFileUrl,
       policeVerificationFileUrl: policeVerificationFileUrl ?? this.policeVerificationFileUrl,
-      age: age ?? this.age,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       sex: sex ?? this.sex,
       tribeId: tribeId ?? this.tribeId,
       apst: apst ?? this.apst,
@@ -175,11 +177,27 @@ class Profile {
     );
   }
 
+  // Calculate age from date of birth
+  int? get age {
+    if (dateOfBirth == null) return null;
+
+    final now = DateTime.now();
+    int age = now.year - dateOfBirth!.year;
+
+    // Check if birthday hasn't occurred this year
+    if (now.month < dateOfBirth!.month ||
+        (now.month == dateOfBirth!.month && now.day < dateOfBirth!.day)) {
+      age--;
+    }
+
+    return age;
+  }
+
   bool get hasCompleteProfile {
     return fullName.isNotEmpty &&
         phone != null &&
         email != null &&
-        age != null &&
+        dateOfBirth != null &&
         sex != null &&
         addressLine1 != null &&
         pincode != null &&

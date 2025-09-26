@@ -92,6 +92,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                   children: [
                     _buildInfoRow('Full Name', profileProvider.profile?.fullName ?? 'Not provided', Icons.person, isDark),
                     _buildInfoRow('Age', profileProvider.profile?.age?.toString() ?? 'Not provided', Icons.cake, isDark),
+                    _buildInfoRow('Date of Birth', profileProvider.profile?.dateOfBirth != null ? _formatDate(profileProvider.profile!.dateOfBirth!) : 'Not provided', Icons.calendar_today, isDark),
                     _buildInfoRow('Gender', profileProvider.profile?.sex?.displayName ?? 'Not provided', Icons.wc, isDark),
                     _buildInfoRow('Phone', profileProvider.profile?.phone ?? 'Not provided', Icons.phone, isDark),
                     _buildInfoRow('Email', profileProvider.profile?.email ?? 'Not provided', Icons.email, isDark),
@@ -568,6 +569,16 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
         _showErrorSnackBar('Failed to open document. Please check if you have a browser installed.');
       }
     }
+  }
+
+  // Format date for display
+  String _formatDate(DateTime date) {
+    final months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
   // Show error snackbar

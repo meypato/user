@@ -62,7 +62,7 @@ class ProfileProvider extends ChangeNotifier {
     required String phone,
     required String stateId,
     required String cityId,
-    int? age,
+    DateTime? dateOfBirth,
     SexType? sex,
     String? addressLine1,
     String? addressLine2,
@@ -83,7 +83,7 @@ class ProfileProvider extends ChangeNotifier {
         phone: phone,
         stateId: stateId,
         cityId: cityId,
-        age: age,
+        dateOfBirth: dateOfBirth,
         sex: sex,
         addressLine1: addressLine1,
         addressLine2: addressLine2,
@@ -108,7 +108,7 @@ class ProfileProvider extends ChangeNotifier {
   Future<bool> updateProfile({
     String? fullName,
     String? phone,
-    int? age,
+    DateTime? dateOfBirth,
     SexType? sex,
     String? addressLine1,
     String? addressLine2,
@@ -131,7 +131,7 @@ class ProfileProvider extends ChangeNotifier {
         profileId: _profile!.id,
         fullName: fullName,
         phone: phone,
-        age: age,
+        dateOfBirth: dateOfBirth,
         sex: sex,
         addressLine1: addressLine1,
         addressLine2: addressLine2,
@@ -296,7 +296,7 @@ class ProfileProvider extends ChangeNotifier {
     if (_profile!.fullName.isNotEmpty) completedFields++;
     if (_profile!.phone != null && _profile!.phone!.isNotEmpty) completedFields++;
     if (_profile!.email != null && _profile!.email!.isNotEmpty) completedFields++;
-    if (_profile!.age != null) completedFields++;
+    if (_profile!.dateOfBirth != null) completedFields++;
     if (_profile!.sex != null) completedFields++;
     if (_profile!.addressLine1 != null && _profile!.addressLine1!.isNotEmpty) completedFields++;
     if (_profile!.pincode != null && _profile!.pincode!.isNotEmpty) completedFields++;

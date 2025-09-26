@@ -25,16 +25,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
-  final _ageController = TextEditingController();
+  final _dateOfBirthController = TextEditingController();
   final _addressLine1Controller = TextEditingController();
   final _addressLine2Controller = TextEditingController();
   final _pincodeController = TextEditingController();
   final _emergencyNameController = TextEditingController();
   final _emergencyPhoneController = TextEditingController();
 
-  // Dropdown values
+  // Dropdown values and date selection
   SexType? _selectedSex;
   APSTStatus? _selectedApstStatus;
+  DateTime? _selectedDateOfBirth;
   ref.State? _selectedState;
   ref.City? _selectedCity;
   ref.Profession? _selectedProfession;
@@ -74,7 +75,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _fullNameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
-    _ageController.dispose();
+    _dateOfBirthController.dispose();
     _addressLine1Controller.dispose();
     _addressLine2Controller.dispose();
     _pincodeController.dispose();
@@ -89,7 +90,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       _fullNameController.text = profile.fullName;
       _phoneController.text = profile.phone ?? '';
       _emailController.text = profile.email ?? '';
-      _ageController.text = profile.age?.toString() ?? '';
+      _selectedDateOfBirth = profile.dateOfBirth;
+      _dateOfBirthController.text = _selectedDateOfBirth != null
+          ? "${_selectedDateOfBirth!.day.toString().padLeft(2, '0')}/${_selectedDateOfBirth!.month.toString().padLeft(2, '0')}/${_selectedDateOfBirth!.year}"
+          : '';
       _addressLine1Controller.text = profile.addressLine1 ?? '';
       _addressLine2Controller.text = profile.addressLine2 ?? '';
       _pincodeController.text = profile.pincode ?? '';
@@ -209,36 +213,30 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         isDark: isDark,
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildTextField(
-                              controller: _ageController,
-                              label: 'Age',
-                              icon: Icons.cake,
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value?.isEmpty ?? true) return 'Required';
-                                final age = int.tryParse(value!);
-                                if (age == null || age < 18 || age > 120) return 'Invalid age';
-                                return null;
-                              },
-                              isDark: isDark,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildDropdown<SexType>(
-                              value: _selectedSex,
-                              label: 'Gender',
-                              icon: Icons.wc,
-                              items: SexType.values,
-                              itemLabel: (sex) => sex.displayName,
-                              onChanged: (value) => setState(() => _selectedSex = value),
-                              isDark: isDark,
-                            ),
-                          ),
-                        ],
+                      _buildDropdown<SexType>(
+                        value: _selectedSex,
+                        label: 'Gender',
+                        icon: Icons.wc,
+                        items: SexType.values,
+                        itemLabel: (sex) => sex.displayName,
+                        onChanged: (value) => setState(() => _selectedSex = value),
+                        isDark: isDark,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Date of Birth Field
+                      _buildTextField(
+                        controller: _dateOfBirthController,
+                        label: 'Date of Birth',
+                        icon: Icons.calendar_today,
+                        readOnly: true,
+                        onTap: _selectDateOfBirth,
+                        validator: (value) => (value?.isEmpty ?? true) ? 'Please select your date of birth' : null,
+                        isDark: isDark,
+                        suffix: Icon(
+                          Icons.arrow_drop_down,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -517,12 +515,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     TextInputType? keyboardType,
     String? Function(String?)? validator,
     bool enabled = true,
+    bool readOnly = false,
+    VoidCallback? onTap,
+    Widget? suffix,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
       enabled: enabled,
+      readOnly: readOnly,
+      onTap: onTap,
       style: TextStyle(
         color: enabled
             ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)
@@ -540,6 +543,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
           size: 20,
         ),
+        suffixIcon: suffix,
         filled: true,
         fillColor: isDark ? AppColors.backgroundDarkSecondary : AppColors.backgroundSecondary,
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
@@ -634,6 +638,45 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     );
   }
 
+  Future<void> _selectDateOfBirth() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDateOfBirth ?? DateTime(2000), // Default to year 2000 if no date selected
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now().subtract(const Duration(days: 365 * 18)), // Must be at least 18 years old
+      builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: isDark
+                ? ColorScheme.dark(
+                    primary: AppColors.primaryBlue,
+                    onPrimary: Colors.white,
+                    surface: AppColors.surfaceDark,
+                    onSurface: AppColors.textPrimaryDark,
+                  )
+                : ColorScheme.light(
+                    primary: AppColors.primaryBlue,
+                    onPrimary: Colors.white,
+                    surface: AppColors.surfaceLight,
+                    onSurface: AppColors.textPrimary,
+                  ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null && pickedDate != _selectedDateOfBirth) {
+      setState(() {
+        _selectedDateOfBirth = pickedDate;
+        _dateOfBirthController.text =
+            "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
+
+      });
+    }
+  }
+
   Future<void> _saveProfile(ProfileProvider profileProvider) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -655,7 +698,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ? await profileProvider.updateProfile(
               fullName: _fullNameController.text,
               phone: _phoneController.text,
-              age: int.tryParse(_ageController.text),
+              dateOfBirth: _selectedDateOfBirth,
               sex: _selectedSex,
               addressLine1: _addressLine1Controller.text,
               addressLine2: _addressLine2Controller.text.isEmpty ? null : _addressLine2Controller.text,
@@ -674,7 +717,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               phone: _phoneController.text,
               stateId: _selectedState!.id,
               cityId: _selectedCity!.id,
-              age: int.tryParse(_ageController.text),
+              dateOfBirth: _selectedDateOfBirth,
               sex: _selectedSex,
               addressLine1: _addressLine1Controller.text,
               addressLine2: _addressLine2Controller.text.isEmpty ? null : _addressLine2Controller.text,

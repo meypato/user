@@ -10,6 +10,7 @@ import '../../widgets/rent_item_card.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/filter_modal.dart';
 import '../../widgets/profile_required_banner.dart';
+import '../../widgets/navigation_wrapper.dart';
 
 class RentScreen extends StatefulWidget {
   final Map<String, String>? searchParams;
@@ -106,7 +107,8 @@ class _RentScreenState extends State<RentScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
+    return NavigationWrapper(
+      child: Scaffold(
       backgroundColor: theme.colorScheme.surface,
       drawer: const AppDrawer(),
       appBar: AppBar(
@@ -152,6 +154,7 @@ class _RentScreenState extends State<RentScreen> {
       extendBody: true,
       bottomNavigationBar: const CustomBottomNavigation(
         currentIndex: 1, // Rent tab index
+      ),
       ),
     );
   }
