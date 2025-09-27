@@ -1168,7 +1168,7 @@ class _RentDetailScreenState extends State<RentDetailScreen> {
               flex: 2,
               child: ElevatedButton(
                 onPressed: _rentDetail!.isAvailable ? () {
-                  // TODO: Book room
+                  context.go('/booking/confirm', extra: _rentDetail);
                 } : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,

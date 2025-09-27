@@ -6,6 +6,7 @@ import 'common/router.dart';
 import 'themes/theme_provider.dart';
 import 'providers/profile_provider.dart';
 import 'providers/favorites_provider.dart';
+import 'providers/booking_provider.dart';
 import 'services/onboarding_service.dart';
 
 void main() async {
@@ -25,6 +26,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => ProfileProvider()),
         ChangeNotifierProvider(create: (context) => FavoritesProvider()),
+        ChangeNotifierProvider(create: (context) => BookingProvider()),
       ],
       child: const MainApp(),
     ),

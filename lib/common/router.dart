@@ -20,6 +20,9 @@ import '../screens/favorites/favorites_screen.dart';
 import '../screens/location/location_picker_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/contact/contact_screen.dart';
+import '../screens/booking/booking_confirm_screen.dart';
+import '../screens/booking/booking_success_screen.dart';
+import '../models/models.dart';
 import '../services/auth_service.dart';
 import '../services/onboarding_service.dart';
 
@@ -178,6 +181,22 @@ class AppRouter {
         name: 'contact',
         builder: (context, state) => const ContactScreen(),
       ),
+      GoRoute(
+        path: '/booking/confirm',
+        name: 'booking-confirm',
+        builder: (context, state) {
+          final roomDetail = state.extra as RoomDetail;
+          return BookingConfirmScreen(roomDetail: roomDetail);
+        },
+      ),
+      GoRoute(
+        path: '/booking/success/:subscriptionId',
+        name: 'booking-success',
+        builder: (context, state) {
+          final subscriptionId = state.pathParameters['subscriptionId']!;
+          return BookingSuccessScreen(subscriptionId: subscriptionId);
+        },
+      ),
     ],
   );
 }
@@ -217,6 +236,8 @@ class RouteNames {
   static const String favorites = 'favorites';
   static const String locationPicker = 'location-picker';
   static const String contact = 'contact';
+  static const String bookingConfirm = 'booking-confirm';
+  static const String bookingSuccess = 'booking-success';
 }
 
 // Route paths for easy reference
@@ -239,4 +260,6 @@ class RoutePaths {
   static const String favorites = '/favorites';
   static const String locationPicker = '/location-picker';
   static const String contact = '/contact';
+  static const String bookingConfirm = '/booking/confirm';
+  static const String bookingSuccess = '/booking/success/:subscriptionId';
 }
